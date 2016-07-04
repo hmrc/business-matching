@@ -24,7 +24,9 @@ import metrics.MetricsEnum.MetricsEnum
 trait Metrics {
 
   def startTimer(api: MetricsEnum): Timer.Context
+
   def incrementSuccessCounter(api: MetricsEnum): Unit
+
   def incrementFailedCounter(api: MetricsEnum): Unit
 
 }
