@@ -17,14 +17,14 @@
 package uk.gov.hmrc.controllers
 
 import connectors.EtmpConnector
-import controllers.{SaBusinessLookupController, AgentBusinessLookupController, BusinessLookupController}
+import controllers.{AgentBusinessLookupController, BusinessLookupController, SaBusinessLookupController}
 import org.mockito.Matchers
+import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.Mockito._
 import uk.gov.hmrc.domain.SaUtrGenerator
 import uk.gov.hmrc.play.http.HttpResponse
 
@@ -52,34 +52,52 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
     val atedRef = "ATED-123"
     "lookup" must {
 
-      val matchSuccess = Json.parse("""{"businessName":"ACME","businessType":"Unincorporated body","businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123","businessTelephone":"201234567890","businessEmail":"contact@acme.com"}""")
+      val matchSuccess = Json.parse(
+        """{
+          |  "businessName":"ACME",
+          |  "businessType":"Unincorporated body",
+          |  "businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123",
+          |  "businessTelephone":"201234567890",
+          |  "businessEmail":"contact@acme.com"
+          |}
+        """.stripMargin)
+
       val matchSuccessResponse = HttpResponse(OK, responseJson = Some(matchSuccess))
-      val matchFailure = Json.parse("""{"reason": "Resource not found"}""")
+
+      val matchFailure = Json.parse(""" {"reason": "Resource not found"} """)
+
       val matchFailureResponse = HttpResponse(NOT_FOUND, responseJson = Some(matchFailure))
 
+      val inputJsonForUIB = Json.parse(
+        s"""
+           |{
+           |  "businessType": "UIB",
+           |  "uibCompany": {
+           |    "uibBusinessName": "ACME",
+           |    "uibCotaxAUTR": $utr
+           |  }
+           |}
+          """.stripMargin)
+
       "respond with OK" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(OK)
       }
 
       "return Response as HttpResponse text/plain" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
-        contentType(result).get must be("text/plain")
+        contentType(result) must be(Some("text/plain"))
       }
 
       "for a successful match return Business Details" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         contentAsJson(result) must be(matchSuccessResponse.json)
       }
 
       "for an unsuccessful match return Not found" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchFailureResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(NOT_FOUND)
@@ -87,27 +105,30 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
       }
 
       "for a bad request, return BadRequest" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
-        val badRequestJson = Json.parse("""{"reason" : "Bad Request"}""")
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(BAD_REQUEST, Some(badRequestJson))))
+        val badRequestJson = Json.parse(""" { "reason" : "Bad Request" } """)
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(BAD_REQUEST, Some(badRequestJson)))
+        }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(BAD_REQUEST)
         contentAsJson(result) must be(badRequestJson)
       }
 
       "for service unavailable, return service unavailable" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
-        val serviceUnavailable = Json.parse("""{"reason" : "Service unavailable"}""")
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(SERVICE_UNAVAILABLE, Some(serviceUnavailable))))
+        val serviceUnavailable = Json.parse(""" { "reason" : "Service unavailable" } """)
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(SERVICE_UNAVAILABLE, Some(serviceUnavailable)))
+        }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(SERVICE_UNAVAILABLE)
         contentAsJson(result) must be(serviceUnavailable)
       }
 
       "internal server error, return internal server error" in {
-        val inputJsonForUIB = Json.parse(s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $utr} }""")
-        val serverError = Json.parse("""{"reason" : "Internal server error"}""")
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, Some(serverError))))
+        val serverError = Json.parse(""" { "reason" : "Internal server error" } """)
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, Some(serverError)))
+        }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(INTERNAL_SERVER_ERROR)
         contentAsJson(result) must be(serverError)

@@ -14,7 +14,6 @@ private object AppDependencies {
   private val playConfigVersion = "2.0.1"
   private val playAuthorisationVersion = "3.1.0"
   private val playJsonLoggerVersion = "2.1.1"
-  private val playUrlBindersVersion = "1.0.0"
   private val domainVersion = "3.7.0"
 
   val compile = Seq(
@@ -24,7 +23,6 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "play-config" % playConfigVersion,
     "uk.gov.hmrc" %% "play-authorisation" % playAuthorisationVersion,
     "uk.gov.hmrc" %% "play-json-logger" % playJsonLoggerVersion,
-    "uk.gov.hmrc" %% "play-url-binders" % playUrlBindersVersion,
     "uk.gov.hmrc" %% "domain" % domainVersion,
     "uk.gov.hmrc" %% "play-health" % playHealthVersion,
 

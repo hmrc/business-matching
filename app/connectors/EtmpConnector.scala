@@ -31,14 +31,18 @@ import scala.concurrent.Future
 
 trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
-  lazy val serviceURL = baseUrl("etmp-hod")
-  val baseURI = "registration"
-  val indLookupURI = "individual"
-  val orgLookupURI = "organisation"
-  val urlHeaderEnvironment: String
-  val urlHeaderAuthorization: String
+  def serviceUrl: String
 
-  val http: HttpGet with HttpPost = WSHttp
+  def indLookupURI: String
+
+  def orgLookupURI: String
+
+  def urlHeaderEnvironment: String
+
+  def urlHeaderAuthorization: String
+
+  def http: HttpGet with HttpPost
+
   def metrics: Metrics
 
   def lookup(lookupData: JsValue, userType: String, utr: String)(implicit headerCarrier: HeaderCarrier): Future[HttpResponse] = {
@@ -46,8 +50,8 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
     Logger.debug(s"[EtmpConnector][lookup] utr: $utr userType: $userType, lookup: $lookupData")
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
     val result = userType match {
-      case "sa" =>  http.POST[JsValue, HttpResponse]( s"""$serviceURL/$baseURI/$indLookupURI/$utr""", lookupData)
-      case "org" => http.POST[JsValue, HttpResponse]( s"""$serviceURL/$baseURI/$orgLookupURI/$utr""", lookupData)
+      case "sa" => http.POST[JsValue, HttpResponse]( s"$serviceUrl/$indLookupURI/$utr", lookupData)
+      case "org" => http.POST[JsValue, HttpResponse]( s"$serviceUrl/$orgLookupURI/$utr", lookupData)
       case _ => throw new RuntimeException("Wrong user type!!")
     }
     result.map { response =>
@@ -64,14 +68,17 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
     }
   }
 
-  def createHeaderCarrier: HeaderCarrier = {
+  def createHeaderCarrier: HeaderCarrier =
     HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment), authorization = Some(Authorization(urlHeaderAuthorization)))
-  }
 
 }
 
 object EtmpConnector extends EtmpConnector {
-  override val urlHeaderEnvironment: String = config("etmp-hod").getString("environment").getOrElse("")
-  override val urlHeaderAuthorization: String = s"Bearer ${config("etmp-hod").getString("authorization-token").getOrElse("")}"
-  override def metrics = Metrics
+  val serviceUrl = baseUrl("etmp-hod")
+  val indLookupURI: String = "registration/individual"
+  val orgLookupURI: String = "registration/organisation"
+  val urlHeaderEnvironment: String = config("etmp-hod").getString("environment").getOrElse("")
+  val urlHeaderAuthorization: String = s"Bearer ${config("etmp-hod").getString("authorization-token").getOrElse("")}"
+  val http = WSHttp
+  val metrics = Metrics
 }

@@ -25,17 +25,15 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.Play
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.SaUtrGenerator
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.{AppName, RunMode}
 import uk.gov.hmrc.play.http.logging.SessionId
 import uk.gov.hmrc.play.http.ws.{WSGet, WSPost}
-import uk.gov.hmrc.play.http.{HttpGet, HttpPost, HttpResponse}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpResponse}
 
 import scala.concurrent.Future
 
@@ -52,10 +50,13 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
   val mockWSHttp = mock[MockHttp]
 
   object TestEtmpConnector extends EtmpConnector {
+    override val serviceUrl = ""
+    override val indLookupURI: String = "registration/individual"
+    override val orgLookupURI: String = "registration/organisation"
     override val http: HttpGet with HttpPost = mockWSHttp
     override val urlHeaderEnvironment: String = config("etmp-hod").getString("environment").getOrElse("")
     override val urlHeaderAuthorization: String = s"Bearer ${config("etmp-hod").getString("authorization-token").getOrElse("")}"
-    override def metrics = Metrics
+    override val metrics = Metrics
   }
 
   before {
@@ -72,24 +73,60 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
     "use correct metrics" in {
       EtmpConnector.metrics must be(Metrics)
     }
+
     "userType=sa" must {
 
-      val matchSuccessResponse = Json.parse( """{"businessName":"ACME","businessType":"Unincorporated body","businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123","businessTelephone":"201234567890","businessEmail":"contact@acme.com"}""")
+      val matchSuccessResponse = Json.parse(
+        """
+          |{
+          |  "businessName":"ACME",
+          |  "businessType":"Unincorporated body",
+          |  "businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123",
+          |  "businessTelephone":"201234567890",
+          |  "businessEmail":"contact@acme.com"
+          |}
+        """.stripMargin)
+
       val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
 
       "for a successful match, return business details" in {
-        val inputJsonForUIB = Json.parse( s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $matchUtr} }""")
+
+        val inputJsonForUIB = Json.parse(
+          s"""
+             |{
+             |  "businessType": "UIB",
+             |  "uibCompany": {
+             |    "uibBusinessName": "ACME",
+             |    "uibCotaxAUTR": $matchUtr
+             |  }
+             |}
+          """.stripMargin)
+
         implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse))))
+
+        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
+        }
         val result = TestEtmpConnector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())
       }
 
       "for unsuccessful match, return error message" in {
-        val inputJsonForUIB = Json.parse( s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $noMatchUtr} }""")
+        val inputJsonForUIB = Json.parse(
+          s"""
+             |{
+             |  "businessType": "UIB",
+             |  "uibCompany": {
+             |    "uibBusinessName": "ACME",
+             |    "uibCotaxAUTR": $noMatchUtr
+             |  }
+             |}
+          """.stripMargin)
         implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse))))
+        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
+        }
         val result = TestEtmpConnector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())
@@ -99,35 +136,73 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
 
     "userType=org" must {
 
-      val matchSuccessResponse = Json.parse( """{"businessName":"ACME","businessType":"Unincorporated body","businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123","businessTelephone":"201234567890","businessEmail":"contact@acme.com"}""")
+      val matchSuccessResponse = Json.parse(
+        """
+          |{
+          |  "businessName":"ACME",
+          |  "businessType":"Unincorporated body",
+          |  "businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123",
+          |  "businessTelephone":"201234567890",
+          |  "businessEmail":"contact@acme.com"
+          |}
+        """.stripMargin)
+
       val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
 
       "for a successful match, return business details" in {
-        val inputJsonForUIB = Json.parse( s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $matchUtr} }""")
+        val inputJsonForUIB = Json.parse(
+          s"""{
+              |  "businessType": "UIB",
+              |  "uibCompany": {
+              |    "uibBusinessName": "ACME",
+              |    "uibCotaxAUTR": $matchUtr
+              |  }
+              |}
+          """.stripMargin)
         implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse))))
+        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
+        }
         val result = TestEtmpConnector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())
       }
 
       "for unsuccessful match, return error message" in {
-        val inputJsonForUIB = Json.parse( s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $noMatchUtr} }""")
+        val inputJsonForUIB = Json.parse(
+          s"""
+             |{
+             |  "businessType": "UIB",
+             |  "uibCompany": {
+             |    "uibBusinessName": "ACME",
+             |    "uibCotaxAUTR": $noMatchUtr
+             |  }
+             |}
+          """.stripMargin)
         implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse))))
+        when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
+          Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
+        }
         val result = TestEtmpConnector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())
       }
 
     }
+
     "userType=Wrong type, throw an exception" in {
 
-      val matchSuccessResponse = Json.parse( """{"businessName":"ACME","businessType":"Unincorporated body","businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123","businessTelephone":"201234567890","businessEmail":"contact@acme.com"}""")
-
-      val inputJsonForUIB = Json.parse( s"""{ "businessType": "UIB", "uibCompany": {"uibBusinessName": "ACME", "uibCotaxAUTR": $matchUtr} }""")
+      val inputJsonForUIB = Json.parse(
+        s"""
+           |{
+           |  "businessType": "UIB",
+           |  "uibCompany": {
+           |    "uibBusinessName": "ACME",
+           |    "uibCotaxAUTR": $matchUtr
+           |  }
+           |}
+        """.stripMargin)
       implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-      when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse))))
       val thrown = the[RuntimeException] thrownBy await(TestEtmpConnector.lookup(inputJsonForUIB, "wrongType", matchUtr.toString))
       thrown.getMessage must be("Wrong user type!!")
       verify(mockWSHttp, times(0)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())

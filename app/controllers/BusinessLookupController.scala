@@ -25,7 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait BusinessLookupController extends BaseController {
 
-  val desConnector: EtmpConnector
+  def desConnector: EtmpConnector
 
   def lookup(gg: String, utr: String, userType: String) = Action.async {
     implicit request =>
@@ -33,7 +33,9 @@ trait BusinessLookupController extends BaseController {
       Logger.info(s"[BusinessLookupController] [lookup] gg = ${gg}, utr = ${utr}, userType = ${userType}")
       desConnector.lookup(lookupData = json, userType = userType, utr = utr).map {
         lookupData =>
-          Logger.info(s"[BusinessLookupController] [lookup] [lookupData.status] = ${lookupData.status} && [lookupData.body] = ${lookupData.body}")
+          Logger.info(
+            s"""[BusinessLookupController] [lookup] [lookupData.status]
+                | = ${lookupData.status} && [lookupData.body] = ${lookupData.body}""".stripMargin)
           lookupData.status match {
             case OK => Ok(lookupData.body)
             case NOT_FOUND => NotFound(lookupData.body).as("application/json")
