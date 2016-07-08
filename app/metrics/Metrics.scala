@@ -34,15 +34,18 @@ trait Metrics {
 object Metrics extends Metrics {
 
   val timers = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.timer("etmp-business-match-response-timer")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.timer("etmp-business-match-response-timer"),
+    MetricsEnum.REGISTER_WITH_ID_MATCH -> MetricsRegistry.defaultRegistry.timer("messaging-register-with-id-timer")
   )
 
   val successCounters = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-success-counter")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-success-counter"),
+    MetricsEnum.REGISTER_WITH_ID_MATCH -> MetricsRegistry.defaultRegistry.counter("messaging-register-with-id-success-counter")
   )
 
   val failedCounters = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-failed-counter")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-failed-counter"),
+    MetricsEnum.REGISTER_WITH_ID_MATCH -> MetricsRegistry.defaultRegistry.counter("messaging-register-with-id-failed-counter")
   )
 
   override def startTimer(api: MetricsEnum): Context = timers(api).time()
