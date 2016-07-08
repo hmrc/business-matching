@@ -42,8 +42,6 @@ trait RegisterWithIdConnector extends ServicesConfig with RawResponseReads {
 
   def bearerToken: String
 
-
-
   def lookup(lookupData: JsValue): Future[HttpResponse] = {
     val postUrl = s"""$serviceURL/$baseURI"""
     implicit val hc = new HeaderCarrier(authorization = Some(Authorization("Bearer " + bearerToken)))
@@ -59,6 +57,7 @@ trait RegisterWithIdConnector extends ServicesConfig with RawResponseReads {
             metrics.incrementSuccessCounter(REGISTER_WITH_ID_MATCH)
             response
           case _ =>
+            Logger.warn(s"[RegisterWithIdConnector][lookup] - status: ${response.status}, responseBody: ${response.body}")
             metrics.incrementFailedCounter(REGISTER_WITH_ID_MATCH)
             response
         }
@@ -70,6 +69,6 @@ object RegisterWithIdConnector extends RegisterWithIdConnector {
   val http = WSHttp
   val metrics: Metrics = Metrics
   val serviceURL = baseUrl("register-with-id")
-  val baseURI = getConfString("register-with-id.uri", throw new RuntimeException("Could not find config register-with-id.uri"))
-  val bearerToken = getConfString("register-with-id.authorization-token", throw new RuntimeException("Could not find config register-with-id.authorization-token"))
+  val baseURI = "registrations"
+  val bearerToken = getConfString("register-with-id.authorization-token", "")
 }

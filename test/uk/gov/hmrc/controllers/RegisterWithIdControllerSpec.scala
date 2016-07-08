@@ -43,7 +43,7 @@ class RegisterWithIdControllerSpec extends PlaySpec with OneServerPerSuite with 
       RegisterWithIdController.connector must be(RegisterWithIdConnector)
     }
 
-    val ggRef = "123"
+    val ggRef = "1111111111"
 
     "lookup" must {
 

@@ -3,4 +3,5 @@
 POST    /sa/:gg/business-matching/business-lookup/:utr/:userType         controllers.SaBusinessLookupController.lookup(gg: String, utr: String, userType: String)
 POST    /org/:gg/business-matching/business-lookup/:utr/:userType        controllers.BusinessLookupController.lookup(gg: String, utr: String, userType: String)
 POST    /agent/:gg/business-matching/business-lookup/:utr/:userType      controllers.AgentBusinessLookupController.lookup(gg: String, utr: String, userType: String)
+
 POST    /org/:gg/business-matching/business-lookup                       controllers.RegisterWithIdController.lookup(gg: String)

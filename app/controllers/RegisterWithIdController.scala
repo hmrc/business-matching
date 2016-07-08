@@ -29,7 +29,6 @@ trait RegisterWithIdController extends BaseController {
 
   def lookup(gg: String) = Action.async {
     implicit request =>
-
       request.body.asJson match {
         case Some(x) =>
           connector.lookup(x) map {

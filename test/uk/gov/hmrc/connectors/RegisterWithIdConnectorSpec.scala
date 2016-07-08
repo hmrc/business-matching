@@ -42,13 +42,6 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
   val serviceContext = "registrations"
   val serviceBearerToken = "1One2Two"
 
-  implicit override lazy val app = FakeApplication(additionalConfiguration = Map(
-    "microservice.services.register-with-id.host" -> serviceHost,
-    "microservice.services.register-with-id.port" -> servicePort,
-    "microservice.services.register-with-id.uri" -> serviceContext,
-    "microservice.services.register-with-id.authorization-token" -> serviceBearerToken
-  ))
-
   val postUrl = s"http://$serviceHost:$servicePort/$serviceContext"
 
   class MockHttp extends WSGet with WSPost {
@@ -68,19 +61,19 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
     when(mockMetrics.startTimer(REGISTER_WITH_ID_MATCH)).thenReturn(mockTimerContext)
   }
 
-  object connectorUnderTest extends RegisterWithIdConnector {
+  object TestRegisterWithIdConnector extends RegisterWithIdConnector {
     val http: HttpGet with HttpPost = mockWSHttp
     val metrics = mockMetrics
-    val serviceURL = baseUrl("register-with-id")
-    val baseURI = getConfString("register-with-id.uri","")
-    val bearerToken = getConfString("register-with-id.authorization-token", "")
+    val serviceURL = s"http://$serviceHost:$servicePort"
+    val baseURI = serviceContext
+    val bearerToken = serviceBearerToken
   }
 
   "RegisterWithIdConnector" must {
 
     "return correct response when posted to correct url with correct payload and AUTH token" in {
       when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any[String], Matchers.eq(mockJs), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(okApiResponse))
-      val result = connectorUnderTest.lookup(mockJs)
+      val result = TestRegisterWithIdConnector.lookup(mockJs)
       await(result) must be(okApiResponse)
 
       val ac: ArgumentCaptor[HeaderCarrier] = ArgumentCaptor.forClass(classOf[HeaderCarrier])
@@ -90,7 +83,7 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
 
     "increase the SuccessCounter when response is OK" in {
       when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any[String], Matchers.any[JsValue], Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(okApiResponse))
-      await(connectorUnderTest.lookup(mockJs))
+      await(TestRegisterWithIdConnector.lookup(mockJs))
 
       verify(mockTimerContext).stop()
       verify(mockMetrics).incrementSuccessCounter(REGISTER_WITH_ID_MATCH)
@@ -99,11 +92,13 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
 
     "increase the FailedCounter when response is not OK" in {
       when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any[String], Matchers.eq(mockJs), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(notOkAPIResponse))
-      val result = connectorUnderTest.lookup(mockJs)
+      val result = TestRegisterWithIdConnector.lookup(mockJs)
       await(result) must be(notOkAPIResponse)
 
       verify(mockTimerContext).stop()
       verify(mockMetrics).incrementFailedCounter(REGISTER_WITH_ID_MATCH)
     }
+
   }
+
 }
