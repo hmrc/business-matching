@@ -42,7 +42,7 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
   val serviceContext = "registrations"
   val serviceBearerToken = "1One2Two"
 
-  val postUrl = s"http://$serviceHost:$servicePort/$serviceContext"
+  val postUrl = s"http://$serviceHost:$servicePort/$serviceContext/registerwithid/1.0.0"
 
   class MockHttp extends WSGet with WSPost {
     override val hooks = NoneRequired
@@ -67,6 +67,7 @@ class RegisterWithIdConnectorSpec extends PlaySpec with OneServerPerSuite with M
     val serviceURL = s"http://$serviceHost:$servicePort"
     val baseURI = serviceContext
     val bearerToken = serviceBearerToken
+    val version = "1.0.0"
   }
 
   "RegisterWithIdConnector" must {
