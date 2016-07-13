@@ -8,14 +8,15 @@ This service privides the ability for agents, organistation or self-assessment i
 =====
 
 The request must be a valid json using one of the following uris
-- POST    /sa/:gg/business-matching/business-lookup/:utr/:userType: Self Assessment users should call this
-- POST    /org/:gg/business-matching/business-lookup/:utr/:userType: Organisations should call this
-- POST    /agent/:gg/business-matching/business-lookup/:utr/:userType: Agents should call this
+- `POST    /sa/:gg/business-matching/business-lookup/:utr/:userType:` Self Assessment users should call this
+- `POST    /org/:gg/business-matching/business-lookup/:utr/:userType:` Organisations should call this
+- `POST    /agent/:gg/business-matching/business-lookup/:utr/:userType:` Agents should call this
+- `POST    /org/:gg/business-matching/business-lookup ` Currently only Organisations are supported
 
 Where:
 
 | Parameter | Message                      |
-|:--------:|------------------------------|
+|:--------:|------------------------------|messaging
 |    gg    | The Users Government Gateway Id  |
 |   utr    | he Unique Tax Reference being looked up |
 | userType | Whether this is "sa", "org" or "agent" |
@@ -23,7 +24,7 @@ Where:
 
 ####Example of usage
 
- POST /agent/123456789/business-matching/business-lookup/:utr/agent
+    POST /agent/123456789/business-matching/business-lookup/:utr/agent
 
  **Request body**
 
@@ -71,7 +72,6 @@ Where:
   }
 }
  ```
-
 
 ### License
 
