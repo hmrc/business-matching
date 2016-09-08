@@ -60,6 +60,8 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
         case OK =>
           metrics.incrementSuccessCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
           response
+        case NOT_FOUND =>
+          response
         case status =>
           metrics.incrementFailedCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
           Logger.warn(s"[EtmpConnector][lookup] - status: $status InternalServerException ${response.body}")
