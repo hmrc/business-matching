@@ -22,5 +22,4 @@ object MetricsEnum extends Enumeration {
 
   val ETMP_BUSINESS_MATCH = Value
 
-  val REGISTER_WITH_ID_MATCH = Value
 }
