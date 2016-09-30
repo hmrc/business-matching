@@ -11,7 +11,6 @@ The request must be a valid json using one of the following uris
 - `POST    /sa/:gg/business-matching/business-lookup/:utr/:userType:` Self Assessment users should call this
 - `POST    /org/:gg/business-matching/business-lookup/:utr/:userType:` Organisations should call this
 - `POST    /agent/:gg/business-matching/business-lookup/:utr/:userType:` Agents should call this
-- `POST    /org/:gg/business-matching/business-lookup ` Currently only Organisations are supported
 
 Where:
 
@@ -72,67 +71,6 @@ Where:
   }
 }
  ```
-####Example of usage
-
-    POST /gg/123456789/business-matching/business-lookup
-
- **Request body**
-
- ```json
-{
-   "MDGHeader":{
-      "originatingSystem":"MDTP",
-      "requestTimeStamp":"2016-07-13T12:28:50.843Z",
-      "correlationId":"fb001dc0-f441-4d25-98e3-e8440b879908"
-   },
-   "messageTypes":{
-      "messageType":"RegisterWithID"
-   },
-   "registrationDetails":{
-      "IDType":"UTR",
-      "IDNumber":"123456789",
-      "requiresNameMatch":false,
-      "isAnAgent":false
-   }
-}
- ```
- **Response body**
-
- ```json
-{
-   "MDGHeader":{
-      "status":"OK",
-      "processingDate":"2001-12-17T09:30:47.123456Z",
-      "returnParameters":[
-         {
-            "paramName":"SAP_NUMBER",
-            "paramValue":"0123456789"
-         }
-      ]
-   },
-   "SAFEID":"XE0000123456789",
-   "isAnIndividual":true,
-   "organisation":{
-      "organisationName":"name of the organisation",
-      "isAGroup":true,
-      "organisationType":"Partnership",
-      "code":"0001"
-   },
-   "address":{
-      "addressType":"0001",
-      "addressLine1":"21 Emmbrook Lane",
-      "addressLine2":"Wokingham",
-      "postalCode":"RG41 4RR",
-      "countryCode":"GB"
-   },
-   "contactDetails":{
-      "phoneNumber":"011 5666 4444",
-      "mobileNo":"011 5666 4444",
-      "faxNo":"011 5666 4444",
-      "emailAddress":"fred.flintstone@org.co.uk"
-   }
-}
-```
 
 ### License
 
