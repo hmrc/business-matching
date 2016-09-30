@@ -30,7 +30,7 @@ Where:
 
  ```json
 {
-  "acknowledgmentReference": "12345678901234123456789098909090",
+  "acknowledgementReference": "12345678901234123456789098909090",
   "utr": "1234567890",
   "requiresNameMatch": true,
   "isAnAgent": true,
@@ -68,7 +68,7 @@ Where:
     "phoneNumber": "01332752856",
     "mobileNumber": "07782565326",
     "faxNumber": "01332754256",
-    "eMailAddress": "stephen@manncorpone.co.uk"
+    "emailAddress": "stephen@manncorpone.co.uk"
   }
 }
  ```
