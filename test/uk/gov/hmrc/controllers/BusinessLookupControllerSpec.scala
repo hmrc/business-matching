@@ -80,25 +80,25 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
           """.stripMargin)
 
       "respond with OK" in {
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(OK)
       }
 
       "return Response as HttpResponse text/plain" in {
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         contentType(result) must be(Some("text/plain"))
       }
 
       "for a successful match return Business Details" in {
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(matchSuccessResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         contentAsJson(result) must be(matchSuccessResponse.json)
       }
 
       "for an unsuccessful match return Not found" in {
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())).thenReturn(Future.successful(matchFailureResponse))
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(Future.successful(matchFailureResponse))
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(NOT_FOUND)
         contentAsJson(result) must be(matchFailureResponse.json)
@@ -106,7 +106,7 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
 
       "for a bad request, return BadRequest" in {
         val badRequestJson = Json.parse(""" { "reason" : "Bad Request" } """)
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(BAD_REQUEST, Some(badRequestJson)))
         }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
@@ -116,7 +116,7 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
 
       "for service unavailable, return service unavailable" in {
         val serviceUnavailable = Json.parse(""" { "reason" : "Service unavailable" } """)
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(SERVICE_UNAVAILABLE, Some(serviceUnavailable)))
         }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
@@ -126,7 +126,7 @@ class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with 
 
       "internal server error, return internal server error" in {
         val serverError = Json.parse(""" { "reason" : "Internal server error" } """)
-        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any())) thenReturn {
+        when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, Some(serverError)))
         }
         val result = TestBusinessLookupController.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))

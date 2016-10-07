@@ -30,7 +30,7 @@ trait BusinessLookupController extends BaseController {
   def lookup(gg: String, utr: String, userType: String) = Action.async {
     implicit request =>
       val json = request.body.asJson.get
-      Logger.info(s"[BusinessLookupController] [lookup] gg = ${gg}, utr = ${utr}, userType = ${userType}")
+      Logger.info(s"[BusinessLookupController] [lookup] gg = $gg, utr = $utr, userType = $userType")
       desConnector.lookup(lookupData = json, userType = userType, utr = utr).map {
         lookupData =>
           Logger.info(

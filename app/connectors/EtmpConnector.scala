@@ -45,13 +45,13 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
   def metrics: Metrics
 
-  def lookup(lookupData: JsValue, userType: String, utr: String)(implicit headerCarrier: HeaderCarrier): Future[HttpResponse] = {
-    implicit val headerCarrier = createHeaderCarrier
-    Logger.debug(s"[EtmpConnector][lookup] utr: $utr userType: $userType, lookup: $lookupData")
+  def lookup(lookupData: JsValue, userType: String, utr: String): Future[HttpResponse] = {
+    implicit val hc: HeaderCarrier = createHeaderCarrier
+    Logger.debug(s"[EtmpConnector][lookup] utr: $utr userType: $userType, payload: $lookupData")
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
     val result = userType match {
-      case "sa" => http.POST[JsValue, HttpResponse]( s"$serviceUrl/$indLookupURI/$utr", lookupData)
-      case "org" => http.POST[JsValue, HttpResponse]( s"$serviceUrl/$orgLookupURI/$utr", lookupData)
+      case "sa" => http.POST[JsValue, HttpResponse](s"$serviceUrl/$indLookupURI/$utr", lookupData)
+      case "org" => http.POST[JsValue, HttpResponse](s"$serviceUrl/$orgLookupURI/$utr", lookupData)
       case _ => throw new RuntimeException("Wrong user type!!")
     }
     result.map { response =>
@@ -60,8 +60,7 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
         case OK =>
           metrics.incrementSuccessCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
           response
-        case NOT_FOUND =>
-          response
+        case NOT_FOUND => response
         case status =>
           metrics.incrementFailedCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
           Logger.warn(s"[EtmpConnector][lookup] - status: $status InternalServerException ${response.body}")
