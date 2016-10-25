@@ -10,9 +10,9 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   private val playHealthVersion = "1.1.0"
-  private val microserviceBootstrapVersion = "4.2.1"
-  private val playConfigVersion = "2.0.1"
-  private val playAuthorisationVersion = "3.1.0"
+  private val microserviceBootstrapVersion = "4.4.0"
+  private val playConfigVersion = "2.1.0"
+  private val playAuthorisationVersion = "3.3.0"
   private val playJsonLoggerVersion = "2.1.1"
   private val domainVersion = "3.7.0"
 
@@ -38,9 +38,9 @@ private object AppDependencies {
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % "2.2.1" % scope,
+        "org.scalatest" %% "scalatest" % "2.2.6" % scope,
         "org.scalatestplus" %% "play" % "1.2.0" % scope,
-        "org.pegdown" % "pegdown" % "1.4.2" % scope,
+        "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
     }.test
@@ -52,8 +52,8 @@ private object AppDependencies {
       override lazy val scope: String = "it"
 
       override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % "2.2.1" % scope,
-        "org.pegdown" % "pegdown" % "1.4.2" % scope,
+        "org.scalatest" %% "scalatest" % "2.2.6" % scope,
+        "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
     }.test

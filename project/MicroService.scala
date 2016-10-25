@@ -1,7 +1,6 @@
 import sbt.Keys._
 import sbt.Tests.{SubProcess, Group}
 import sbt._
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
 
@@ -9,7 +8,7 @@ trait MicroService {
 
   import uk.gov.hmrc._
   import DefaultBuildSettings._
-  import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
+  import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
   import TestPhases._
   import uk.gov.hmrc.SbtAutoBuildPlugin
 
