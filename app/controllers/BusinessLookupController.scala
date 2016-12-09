@@ -30,12 +30,8 @@ trait BusinessLookupController extends BaseController {
   def lookup(gg: String, utr: String, userType: String) = Action.async {
     implicit request =>
       val json = request.body.asJson.get
-      Logger.info(s"[BusinessLookupController] [lookup] gg = $gg, utr = $utr, userType = $userType")
       desConnector.lookup(lookupData = json, userType = userType, utr = utr).map {
         lookupData =>
-          Logger.info(
-            s"""[BusinessLookupController] [lookup] [lookupData.status]
-                | = ${lookupData.status} && [lookupData.body] = ${lookupData.body}""".stripMargin)
           lookupData.status match {
             case OK => Ok(lookupData.body)
             case NOT_FOUND => NotFound(lookupData.body).as("application/json")
