@@ -47,7 +47,6 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
   def lookup(lookupData: JsValue, userType: String, utr: String): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
-    Logger.debug(s"[EtmpConnector][lookup] utr: $utr userType: $userType, payload: $lookupData")
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
     val result = userType match {
       case "sa" => http.POST[JsValue, HttpResponse](s"$serviceUrl/$indLookupURI/$utr", lookupData)
