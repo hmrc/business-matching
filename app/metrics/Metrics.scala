@@ -18,7 +18,7 @@ package metrics
 
 import com.codahale.metrics.Timer
 import com.codahale.metrics.Timer.Context
-import com.kenshoo.play.metrics.MetricsRegistry
+import uk.gov.hmrc.play.graphite.MicroserviceMetrics
 import metrics.MetricsEnum.MetricsEnum
 
 trait Metrics {
@@ -31,18 +31,18 @@ trait Metrics {
 
 }
 
-object Metrics extends Metrics {
-
+object Metrics extends Metrics with MicroserviceMetrics {
+  val registry = metrics.defaultRegistry
   val timers = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.timer("etmp-business-match-response-timer")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> registry.timer("etmp-business-match-response-timer")
   )
 
   val successCounters = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-success-counter")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> registry.counter("etmp-business-match-success-counter")
   )
 
   val failedCounters = Map(
-    MetricsEnum.ETMP_BUSINESS_MATCH -> MetricsRegistry.defaultRegistry.counter("etmp-business-match-failed-counter")
+    MetricsEnum.ETMP_BUSINESS_MATCH -> registry.counter("etmp-business-match-failed-counter")
   )
 
   override def startTimer(api: MetricsEnum): Context = timers(api).time()
