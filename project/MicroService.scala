@@ -1,21 +1,23 @@
+import play.routes.compiler.StaticRoutesGenerator
 import sbt.Keys._
-import sbt.Tests.{SubProcess, Group}
+import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-import uk.gov.hmrc.versioning.SbtGitVersioning
 
 trait MicroService {
 
   import uk.gov.hmrc._
   import DefaultBuildSettings._
-  import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
   import TestPhases._
   import uk.gov.hmrc.SbtAutoBuildPlugin
+  import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
+  import uk.gov.hmrc.versioning.SbtGitVersioning
+  import play.sbt.routes.RoutesKeys.routesGenerator
 
   val appName: String
   val appDependencies : Seq[ModuleID]
 
-  lazy val plugins : Seq[Plugins] = Seq(play.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
   lazy val scoverageSettings = {
