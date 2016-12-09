@@ -39,7 +39,8 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := true,
-      retrieveManaged := true
+      retrieveManaged := true,
+      routesGenerator := StaticRoutesGenerator
     )
     .settings(inConfig(TemplateTest)(Defaults.testSettings): _*)
     .configs(IntegrationTest)
