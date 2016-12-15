@@ -17,11 +17,23 @@
 package controllers
 
 import connectors.EtmpConnector
-import play.api.Logger
-import play.api.mvc.Action
+import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
+
+object SaBusinessLookupController extends BusinessLookupController {
+  val desConnector: EtmpConnector = EtmpConnector
+}
+
+object BusinessLookupController extends BusinessLookupController {
+  val desConnector: EtmpConnector = EtmpConnector
+}
+
+object AgentBusinessLookupController extends BusinessLookupController {
+  val desConnector: EtmpConnector = EtmpConnector
+}
+
 
 trait BusinessLookupController extends BaseController {
 
@@ -42,16 +54,4 @@ trait BusinessLookupController extends BaseController {
       }
   }
 
-}
-
-object SaBusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
-}
-
-object BusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
-}
-
-object AgentBusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
 }
