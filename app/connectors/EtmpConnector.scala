@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,14 @@ import play.api.http.Status._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
-import config.WSHttp
+import config.{BusinessMatchingGlobal, WSHttp}
 import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.http.logging.Authorization
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import metrics.{MetricsEnum, Metrics}
+import metrics.{Metrics, MetricsEnum}
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
+import uk.gov.hmrc.play.audit.AuditExtensions._
 
 import scala.concurrent.Future
 
@@ -45,6 +48,8 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
   def metrics: Metrics
 
+  def audit = new Audit("business-matching", BusinessMatchingGlobal.auditConnector)
+
   def lookup(lookupData: JsValue, userType: String, utr: String): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
@@ -62,7 +67,8 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
         case NOT_FOUND => response
         case status =>
           metrics.incrementFailedCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
-          Logger.warn(s"[EtmpConnector][lookup] - status: $status InternalServerException ${response.body}")
+          Logger.warn(s"[EtmpConnector][lookup] - status: $status")
+          doFailedAudit("lookupFailed", lookupData.toString, response.body)
           response
       }
     }
@@ -71,6 +77,14 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
   def createHeaderCarrier: HeaderCarrier =
     HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment), authorization = Some(Authorization(urlHeaderAuthorization)))
 
+  def doFailedAudit(auditType: String, request: String, response: String)(implicit hc:HeaderCarrier): Unit = {
+    val auditDetails = Map("request" -> request,
+                           "response" -> response)
+
+    audit.sendDataEvent(DataEvent("business-matching", auditType,
+      tags = hc.toAuditTags("", "N/A"),
+      detail = hc.toAuditDetails(auditDetails.toSeq: _*)))
+  }
 }
 
 object EtmpConnector extends EtmpConnector {
