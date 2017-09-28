@@ -26,9 +26,9 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.SaUtrGenerator
-import uk.gov.hmrc.play.http.HttpResponse
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HttpResponse
 
 class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with MockitoSugar {
 

@@ -9,13 +9,9 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val playHealthVersion = "2.1.0"
-  private val microserviceBootstrapVersion = "5.16.0"
-  private val playConfigVersion = "4.3.0"
-  private val playAuthorisationVersion = "4.3.0"
-  private val playJsonLoggerVersion = "3.1.0"
+  private val microserviceBootstrapVersion = "6.9.0"
   private val domainVersion = "4.1.0"
-  private val hmrcTestVersion = "2.3.0"
+  private val hmrcTestVersion = "2.4.0"
   private val scalaTestVersion = "2.2.6"
   private val scalaTestPlusVersion = "1.5.1"
   private val pegdownVersion = "1.6.0"
@@ -24,12 +20,7 @@ private object AppDependencies {
 
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-config" % playConfigVersion,
-    "uk.gov.hmrc" %% "play-authorisation" % playAuthorisationVersion,
-    "uk.gov.hmrc" %% "logback-json-logger" % playJsonLoggerVersion,
     "uk.gov.hmrc" %% "domain" % domainVersion,
-    "uk.gov.hmrc" %% "play-health" % playHealthVersion,
-
     "com.kenshoo" %% "metrics-play" % "2.3.0_0.1.8",
     "com.codahale.metrics" % "metrics-graphite" % "3.0.2"
   )
