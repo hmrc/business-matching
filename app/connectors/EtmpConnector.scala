@@ -19,11 +19,8 @@ package connectors
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
 import config.{BusinessMatchingGlobal, WSHttp}
-import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.logging.Authorization
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import metrics.{Metrics, MetricsEnum}
@@ -31,6 +28,8 @@ import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.logging.Authorization
 
 trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
@@ -44,7 +43,7 @@ trait EtmpConnector extends ServicesConfig with RawResponseReads {
 
   def urlHeaderAuthorization: String
 
-  def http: HttpGet with HttpPost
+  def http: CoreGet with CorePost
 
   def metrics: Metrics
 
@@ -93,6 +92,6 @@ object EtmpConnector extends EtmpConnector {
   val orgLookupURI: String = "registration/organisation"
   val urlHeaderEnvironment: String = config("etmp-hod").getString("environment").getOrElse("")
   val urlHeaderAuthorization: String = s"Bearer ${config("etmp-hod").getString("authorization-token").getOrElse("")}"
-  val http = WSHttp
+  val http: CoreGet with CorePost = WSHttp
   val metrics = Metrics
 }
