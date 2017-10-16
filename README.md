@@ -1,17 +1,18 @@
-#business-matching
+business-matching
 =============
 [![Build Status](https://travis-ci.org/hmrc/business-matching.svg?branch=master)](https://travis-ci.org/hmrc/business-matching) [ ![Download](https://api.bintray.com/packages/hmrc/releases/business-matching/images/download.svg) ](https://bintray.com/hmrc/releases/business-matching/_latestVersion)
 
-This service privides the ability for agents, organistation or self-assessment individuals to search ETMP for their Business Partner
-Upgraded to play 2.5.8
+This service privides the ability for agents, organistation or self-assessment individuals to search (and register) to ETMP. This is Register Once in ROSM pattern.
 
-###Business Lookup
-=====
+### Business Lookup
 
 The request must be a valid json using one of the following uris
-- `POST    /sa/:gg/business-matching/business-lookup/:utr/:userType:` Self Assessment users should call this
-- `POST    /org/:gg/business-matching/business-lookup/:utr/:userType:` Organisations should call this
-- `POST    /agent/:gg/business-matching/business-lookup/:utr/:userType:` Agents should call this
+
+| PATH | Supported Methods | Description |
+|------|-------------------|-------------|
+|``` /sa/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Self Assessment users should call this |
+|``` /org/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Organisations should call this |
+|``` /agent/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Agents should call this |
 
 Where:
 
@@ -22,7 +23,7 @@ Where:
 | userType | Whether this is "sa", "org" or "agent" |
 
 
-####Example of usage
+#### Example of usage
 
     POST /agent/123456789/business-matching/business-lookup/:utr/agent
 
@@ -41,6 +42,7 @@ Where:
   }
 }
  ```
+ 
  **Response body**
 
  ```json
