@@ -27,6 +27,10 @@ where,
 
 ```POST /agent/123456789/business-matching/business-lookup/1111111111/agent```
 
+```POST /org/123477789/business-matching/business-lookup/1111111111/org```
+
+```POST /sa/123890789/business-matching/business-lookup/1111111111/sa```
+
  **Request body**
 
 ```json
