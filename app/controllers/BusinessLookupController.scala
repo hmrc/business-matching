@@ -39,7 +39,7 @@ trait BusinessLookupController extends BaseController {
 
   def desConnector: EtmpConnector
 
-  def lookup(gg: String, utr: String, userType: String) = Action.async {
+  def lookup(id: String, utr: String, userType: String) = Action.async {
     implicit request =>
       val json = request.body.asJson.get
       desConnector.lookup(lookupData = json, userType = userType, utr = utr).map {

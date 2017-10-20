@@ -4,7 +4,7 @@ business-matching
 
 This service privides the ability for agents, organistation or self-assessment individuals to search (and register) to ETMP. This is Register Once in ROSM pattern.
 
-### Business Lookup
+## Business Lookup APIs
 
 The request must be a valid json using one of the following uris
 
@@ -14,22 +14,22 @@ The request must be a valid json using one of the following uris
 |``` /org/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Organisations should call this |
 |``` /agent/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Agents should call this |
 
-Where:
+where,
 
 | Parameter | Message                      |
 |:--------:|------------------------------|
-|    gg    | The Users Government Gateway Id  |
+|    gg    | unique auth id for clients/agents  |
 |   utr    | he Unique Tax Reference being looked up |
 | userType | Whether this is "sa", "org" or "agent" |
 
 
-#### Example of usage
+### Usage
 
-    POST /agent/123456789/business-matching/business-lookup/:utr/agent
+```POST /agent/123456789/business-matching/business-lookup/1111111111/agent```
 
  **Request body**
 
- ```json
+```json
 {
   "acknowledgementReference": "12345678901234123456789098909090",
   "utr": "1234567890",
@@ -41,9 +41,17 @@ Where:
     "dateOfBirth": "1990-04-03"
   }
 }
- ```
+```
  
- **Response body**
+ **Response**
+ 
+ | Status | Message     |
+ |-------|-------------|
+ | 200   | Ok          |
+ | 400   | Bad Request |
+ | 404   | Not Found   |
+ | 500   | Internal Server Error |
+ | 503   | Service Unavailable |
 
  ```json
 {
