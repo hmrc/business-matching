@@ -10,15 +10,15 @@ The request must be a valid json using one of the following uris
 
 | PATH | Supported Methods | Description |
 |------|-------------------|-------------|
-|``` /sa/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Self Assessment users should call this |
-|``` /org/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Organisations should call this |
-|``` /agent/:gg/business-matching/business-lookup/:utr/:userType``` | POST | Agents should call this |
+|``` /sa/:sa/business-matching/business-lookup/:utr/:userType``` | POST | Self Assessment users should call this |
+|``` /org/:org/business-matching/business-lookup/:utr/:userType``` | POST | Organisations should call this |
+|``` /agent/:ac/business-matching/business-lookup/:utr/:userType``` | POST | Agents should call this |
 
 where,
 
 | Parameter | Message                      |
 |:--------:|------------------------------|
-|    gg    | unique auth id for clients/agents  |
+|    sa/org/ac    | unique auth id for clients/agents  |
 |   utr    | he Unique Tax Reference being looked up |
 | userType | Whether this is "sa", "org" or "agent" |
 
@@ -85,4 +85,6 @@ where,
 
 ### License
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+This code is open source software licensed under the [Apache 2.0 License].
+
+[Apache 2.0 License]: http://www.apache.org/licenses/LICENSE-2.0.html
