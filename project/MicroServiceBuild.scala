@@ -1,7 +1,7 @@
 import sbt._
 
 object MicroServiceBuild extends Build with MicroService {
-  val appName = "business-matching"
+  override val appName = "business-matching"
   override lazy val appDependencies: Seq[ModuleID] = AppDependencies()
 }
 
@@ -9,25 +9,22 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "6.18.0"
-  private val domainVersion = "4.1.0"
-  private val hmrcTestVersion = "2.4.0"
+  private val microserviceBootstrapVersion = "10.4.0"
+  private val domainVersion = "5.3.0"
   private val scalaTestVersion = "2.2.6"
-  private val scalaTestPlusVersion = "1.5.1"
+  private val scalaTestPlusVersion = "2.0.1"
   private val pegdownVersion = "1.6.0"
 
   val compile = Seq(
 
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion,
-    "com.kenshoo" %% "metrics-play" % "2.3.0_0.1.8",
-    "com.codahale.metrics" % "metrics-graphite" % "3.0.2"
+    "uk.gov.hmrc" %% "domain" % domainVersion
   )
 
   trait TestDependencies {
     lazy val scope: String = "test"
-    lazy val test : Seq[ModuleID] = ???
+    val test : Seq[ModuleID]
   }
 
   object Test {
@@ -42,19 +39,5 @@ private object AppDependencies {
     }.test
   }
 
-  object IntegrationTest {
-    def apply() = new TestDependencies {
-
-      override lazy val scope: String = "it"
-
-      override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
-      )
-    }.test
-  }
-
-  def apply() = compile ++ Test() ++ IntegrationTest()
+  def apply() = compile ++ Test()
 }
-

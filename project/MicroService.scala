@@ -1,22 +1,19 @@
-import play.routes.compiler.StaticRoutesGenerator
+import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
-import sbt.Tests.{Group, SubProcess}
 import sbt._
+import uk.gov.hmrc.DefaultBuildSettings.targetJvm
+import uk.gov.hmrc.{SbtArtifactory, SbtAutoBuildPlugin, _}
+import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
+import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
-import uk.gov.hmrc.SbtArtifactory
+import play.routes.compiler.StaticRoutesGenerator
+
 
 trait MicroService {
 
-  import uk.gov.hmrc._
-  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
-  import TestPhases._
-  import uk.gov.hmrc.SbtAutoBuildPlugin
-  import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-  import uk.gov.hmrc.versioning.SbtGitVersioning
-  import play.sbt.routes.RoutesKeys.routesGenerator
 
-  val appName: String
+  val appName: String = "business-matching"
   val appDependencies : Seq[ModuleID]
 
   lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
@@ -39,21 +36,12 @@ trait MicroService {
     .settings(
       scalaVersion := "2.11.11",
       targetJvm := "jvm-1.8",
+      majorVersion := 2,
       libraryDependencies ++= appDependencies,
       parallelExecution in Test := false,
       fork in Test := true,
       retrieveManaged := true,
       routesGenerator := StaticRoutesGenerator
-    )
-    .settings(inConfig(TemplateTest)(Defaults.testSettings): _*)
-    .configs(IntegrationTest)
-    .settings(inConfig(TemplateItTest)(Defaults.itSettings): _*)
-    .settings(
-      Keys.fork in IntegrationTest := false,
-      unmanagedSourceDirectories in IntegrationTest <<= (baseDirectory in IntegrationTest)(base => Seq(base / "it")),
-      addTestReportOption(IntegrationTest, "int-test-reports"),
-      testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-      parallelExecution in IntegrationTest := false
     )
     .settings(
       resolvers := Seq(
@@ -62,19 +50,4 @@ trait MicroService {
         Resolver.jcenterRepo
       )
     )
-    .settings(majorVersion := 2)
-}
-
-private object TestPhases {
-
-  val allPhases = "tt->test;test->test;test->compile;compile->compile"
-  val allItPhases = "tit->it;it->it;it->compile;compile->compile"
-
-  lazy val TemplateTest = config("tt") extend Test
-  lazy val TemplateItTest = config("tit") extend IntegrationTest
-
-  def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
-    tests map {
-      test => new Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
-    }
 }
