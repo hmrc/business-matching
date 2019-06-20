@@ -2,6 +2,6 @@
 
 ##API 1a - register UTR
 
-POST    /org/:org/business-matching/business-lookup/:utr/:userType        controllers.BusinessLookupController.lookup(org: String, utr: String, userType: String)
-POST    /sa/:sa/business-matching/business-lookup/:utr/:userType         controllers.SaBusinessLookupController.lookup(sa: String, utr: String, userType: String)
-POST    /agent/:ac/business-matching/business-lookup/:utr/:userType      controllers.AgentBusinessLookupController.lookup(ac: String, utr: String, userType: String)
+POST    /org/:org/business-matching/business-lookup/:utr/:userType       @controllers.DefaultBusinessLookupController.lookup(org: String, utr: String, userType: String)
+POST    /sa/:sa/business-matching/business-lookup/:utr/:userType         @controllers.SaBusinessLookupController.lookup(sa: String, utr: String, userType: String)
+POST    /agent/:ac/business-matching/business-lookup/:utr/:userType      @controllers.AgentBusinessLookupController.lookup(ac: String, utr: String, userType: String)

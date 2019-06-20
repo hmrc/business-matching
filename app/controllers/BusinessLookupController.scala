@@ -17,40 +17,46 @@
 package controllers
 
 import connectors.EtmpConnector
+import javax.inject.{Inject, Singleton}
 import play.api.mvc._
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
-object SaBusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
-}
+@Singleton
+class SaBusinessLookupController @Inject()(
+                                            val desConnector: EtmpConnector,
+                                            val cc: ControllerComponents
+                                          ) extends BackendController(cc) with BusinessLookupController
 
-object BusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
-}
+@Singleton
+class DefaultBusinessLookupController @Inject()(
+                                                 val desConnector: EtmpConnector,
+                                                 val cc: ControllerComponents
+                                               ) extends BackendController(cc) with BusinessLookupController
 
-object AgentBusinessLookupController extends BusinessLookupController {
-  val desConnector: EtmpConnector = EtmpConnector
-}
+@Singleton
+class AgentBusinessLookupController @Inject()(
+                                               val desConnector: EtmpConnector,
+                                               val cc: ControllerComponents
+                                             ) extends BackendController(cc) with BusinessLookupController
 
+trait BusinessLookupController extends BackendController {
+  val desConnector: EtmpConnector
 
-trait BusinessLookupController extends BaseController {
-
-  def desConnector: EtmpConnector
-
-  def lookup(id: String, utr: String, userType: String) = Action.async {
+  def lookup(id: String, utr: String, userType: String): Action[AnyContent] = Action.async {
     implicit request =>
+      implicit val ec: ExecutionContext = controllerComponents.executionContext
+
       val json = request.body.asJson.get
-      desConnector.lookup(lookupData = json, userType = userType, utr = utr).map {
-        lookupData =>
-          lookupData.status match {
-            case OK => Ok(lookupData.body)
-            case NOT_FOUND => NotFound(lookupData.body).as("application/json")
-            case BAD_REQUEST => BadRequest(lookupData.body)
-            case SERVICE_UNAVAILABLE => ServiceUnavailable(lookupData.body)
-            case INTERNAL_SERVER_ERROR | _ => InternalServerError(lookupData.body)
-          }
+      desConnector.lookup(lookupData = json, userType = userType, utr = utr) map {lookupData =>
+        lookupData.status match {
+          case OK                        => Ok(lookupData.body)
+          case NOT_FOUND                 => NotFound(lookupData.body).as("application/json")
+          case BAD_REQUEST               => BadRequest(lookupData.body)
+          case SERVICE_UNAVAILABLE       => ServiceUnavailable(lookupData.body)
+          case INTERNAL_SERVER_ERROR | _ => InternalServerError(lookupData.body)
+        }
       }
   }
 
