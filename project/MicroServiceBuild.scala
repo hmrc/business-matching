@@ -9,32 +9,26 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "10.4.0"
-  private val domainVersion = "5.3.0"
-  private val scalaTestVersion = "2.2.6"
-  private val scalaTestPlusVersion = "2.0.1"
-  private val pegdownVersion = "1.6.0"
-
-  val compile = Seq(
-
+  val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion
+    "uk.gov.hmrc" %% "bootstrap-play-26" % "0.39.0",
+    "uk.gov.hmrc" %% "domain"            % "5.6.0-play-26"
   )
 
   trait TestDependencies {
-    lazy val scope: String = "test"
+    lazy val scope: String = "it,test"
     val test : Seq[ModuleID]
   }
 
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "org.mockito" % "mockito-all" % "1.10.19" % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
+        "org.scalatest"           %% "scalatest"          % "3.0.5"             % scope,
+        "org.scalatestplus.play"  %% "scalatestplus-play" % "3.1.2"             % scope,
+        "org.pegdown"              % "pegdown"            % "1.6.0"             % scope,
+        "com.typesafe.play"       %% "play-test"          % PlayVersion.current % scope,
+        "org.mockito"              % "mockito-all"        % "1.10.19"           % scope,
+        "com.github.tomakehurst"   % "wiremock-jre8"      % "2.23.2"            % IntegrationTest withSources()
       )
     }.test
   }

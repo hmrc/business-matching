@@ -19,42 +19,41 @@ package uk.gov.hmrc.connectors
 import java.util.UUID
 
 import connectors.EtmpConnector
-import metrics.Metrics
+import metrics.ServiceMetrics
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import play.api.{Configuration, Play}
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
-import uk.gov.hmrc.domain.SaUtrGenerator
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{AppName, RunMode}
-
-import scala.concurrent.Future
+import uk.gov.hmrc.domain.{SaUtr, SaUtrGenerator}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.SessionId
-import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
+
+import scala.concurrent.Future
 
 class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSugar with BeforeAndAfter {
 
-  object TestAuditConnector extends AuditConnector with AppName {
-    override lazy val auditingConfig = LoadAuditingConfig(s"auditing")
-    override protected def appNameConfiguration: Configuration = Play.current.configuration
-  }
+  val mockWSHttp: HttpClient = mock[HttpClient]
+  val mockServiceMetrics: ServiceMetrics = mock[ServiceMetrics]
+  val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
-  trait MockedVerbs extends CoreGet with CorePost
-  val mockWSHttp: CoreGet with CorePost = mock[MockedVerbs]
+  trait Setup {
+    class TestEtmpConnector extends EtmpConnector {
+      override val serviceUrl = ""
+      override val indLookupURI: String = "registration/individual"
+      override val orgLookupURI: String = "registration/organisation"
+      override val http: HttpClient = mockWSHttp
+      override val urlHeaderEnvironment: String = "env"
+      override val urlHeaderAuthorization: String = "auth-token"
+      override val metrics = app.injector.instanceOf[ServiceMetrics]
+      override def auditConnector: AuditConnector = mockAuditConnector
+    }
 
-  object TestEtmpConnector extends EtmpConnector {
-    override val serviceUrl = ""
-    override val indLookupURI: String = "registration/individual"
-    override val orgLookupURI: String = "registration/organisation"
-    override val http: CoreGet with CorePost = mockWSHttp
-    override val urlHeaderEnvironment: String = config("etmp-hod").getString("environment").getOrElse("")
-    override val urlHeaderAuthorization: String = s"Bearer ${config("etmp-hod").getString("authorization-token").getOrElse("")}"
-    override val metrics = Metrics
+    val connector = new TestEtmpConnector()
   }
 
   before {
@@ -63,14 +62,10 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
 
   val saUserType = "sa"
   val orgUserType = "org"
-  val matchUtr = new SaUtrGenerator().nextSaUtr
-  val noMatchUtr = new SaUtrGenerator().nextSaUtr
+  val matchUtr: SaUtr = new SaUtrGenerator().nextSaUtr
+  val noMatchUtr: SaUtr = new SaUtrGenerator().nextSaUtr
 
   "BusinessCustomerConnector" must {
-
-    "use correct metrics" in {
-      EtmpConnector.metrics must be(Metrics)
-    }
 
     "userType=sa" must {
 
@@ -87,7 +82,7 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
 
       val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
 
-      "for a successful match, return business details" in {
+      "for a successful match, return business details" in new Setup {
 
         val inputJsonForUIB = Json.parse(
           s"""
@@ -105,12 +100,12 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
 
-      "for unsuccessful match, return error message" in {
+      "for unsuccessful match, return error message" in new Setup {
         val inputJsonForUIB = Json.parse(
           s"""
              |{
@@ -125,12 +120,12 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
 
-      "for server error, return error message" in {
+      "for server error, return error message" in new Setup {
         val inputJsonForUIB = Json.parse(
           s"""
              |{
@@ -145,7 +140,7 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, responseJson = Some(matchFailureResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
@@ -167,7 +162,7 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
 
       val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
 
-      "for a successful match, return business details" in {
+      "for a successful match, return business details" in new Setup {
         val inputJsonForUIB = Json.parse(
           s"""{
               |  "businessType": "UIB",
@@ -181,12 +176,12 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
 
-      "for unsuccessful match, return error message" in {
+      "for unsuccessful match, return error message" in new Setup {
         val inputJsonForUIB = Json.parse(
           s"""
              |{
@@ -201,12 +196,12 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
 
-      "for server error, return error message" in {
+      "for server error, return error message" in new Setup {
         val inputJsonForUIB = Json.parse(
           s"""
              |{
@@ -221,14 +216,14 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
           Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, responseJson = Some(matchFailureResponse)))
         }
-        val result = TestEtmpConnector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
+        val result = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
         await(result).json must be(matchFailureResponse)
         verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
       }
 
     }
 
-    "userType=Wrong type, throw an exception" in {
+    "userType=Wrong type, throw an exception" in new Setup {
 
       val inputJsonForUIB = Json.parse(
         s"""
@@ -241,9 +236,10 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
            |}
         """.stripMargin)
       implicit val hc = new HeaderCarrier(sessionId = Some(SessionId(s"session-${UUID.randomUUID}")))
-      val thrown = the[RuntimeException] thrownBy await(TestEtmpConnector.lookup(inputJsonForUIB, "wrongType", matchUtr.toString))
-      thrown.getMessage must be("Wrong user type!!")
-      verify(mockWSHttp, times(0)).POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
+      val thrown = the[RuntimeException] thrownBy await(connector.lookup(inputJsonForUIB, "wrongType", matchUtr.toString))
+      thrown.getMessage must be("[EtmpConnector][lookup] Incorrect user type")
+      verify(mockWSHttp, times(0))
+        .POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())
     }
   }
 

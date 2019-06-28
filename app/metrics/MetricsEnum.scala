@@ -17,9 +17,7 @@
 package metrics
 
 object MetricsEnum extends Enumeration {
-
   type MetricsEnum = Value
 
-  val ETMP_BUSINESS_MATCH = Value
-
+  val ETMP_BUSINESS_MATCH: metrics.MetricsEnum.Value = Value
 }

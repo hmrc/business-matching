@@ -19,8 +19,7 @@ package connectors
 import uk.gov.hmrc.http.{ HttpReads, HttpResponse }
 
 trait RawResponseReads {
-
   implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
-    override def read(method: String, url: String, response: HttpResponse) = response
+    override def read(method: String, url: String, response: HttpResponse): HttpResponse = response
   }
 }
