@@ -35,7 +35,7 @@ trait MicroService {
     .settings(
       addTestReportOption(IntegrationTest, "int-test-reports"),
       inConfig(IntegrationTest)(Defaults.itSettings),
-      scalaVersion := "2.11.11",
+      scalaVersion := "2.11.12",
       targetJvm := "jvm-1.8",
       majorVersion := 2,
       libraryDependencies ++= appDependencies,
