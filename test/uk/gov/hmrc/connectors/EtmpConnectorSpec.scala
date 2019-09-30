@@ -18,42 +18,50 @@ package uk.gov.hmrc.connectors
 
 import java.util.UUID
 
-import connectors.EtmpConnector
+import connectors.DefaultEtmpConnector
 import metrics.ServiceMetrics
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.{SaUtr, SaUtrGenerator}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.SessionId
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
 
-class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSugar with BeforeAndAfter {
+class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar with BeforeAndAfter {
 
   val mockWSHttp: HttpClient = mock[HttpClient]
   val mockServiceMetrics: ServiceMetrics = mock[ServiceMetrics]
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
   trait Setup {
-    class TestEtmpConnector extends EtmpConnector {
+//    class TestEtmpConnector extends EtmpConnector {
+//      override val serviceUrl = ""
+//      override val indLookupURI: String = "registration/individual"
+//      override val orgLookupURI: String = "registration/organisation"
+//      override val http: HttpClient = mockWSHttp
+//      override val urlHeaderEnvironment: String = "env"
+//      override val urlHeaderAuthorization: String = "auth-token"
+//      override val metrics = app.injector.instanceOf[ServiceMetrics]
+//      override def auditConnector: AuditConnector = mockAuditConnector
+//    }
+    val connector: DefaultEtmpConnector = new DefaultEtmpConnector(mock[ServicesConfig], mockWSHttp, mockAuditConnector, app.injector.instanceOf[ServiceMetrics]) {
       override val serviceUrl = ""
       override val indLookupURI: String = "registration/individual"
       override val orgLookupURI: String = "registration/organisation"
       override val http: HttpClient = mockWSHttp
       override val urlHeaderEnvironment: String = "env"
       override val urlHeaderAuthorization: String = "auth-token"
-      override val metrics = app.injector.instanceOf[ServiceMetrics]
-      override def auditConnector: AuditConnector = mockAuditConnector
     }
-
-    val connector = new TestEtmpConnector()
   }
 
   before {
@@ -66,6 +74,10 @@ class EtmpConnectorSpec extends PlaySpec with OneServerPerSuite with MockitoSuga
   val noMatchUtr: SaUtr = new SaUtrGenerator().nextSaUtr
 
   "BusinessCustomerConnector" must {
+//    "use the correct values" in {
+//      connector
+//    }
+
 
     "userType=sa" must {
 
