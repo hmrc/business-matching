@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import connectors.EtmpConnector
 import controllers.BusinessLookupController
 import org.mockito.Matchers
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Injecting}
 import play.api.test.Helpers._
 import uk.gov.hmrc.domain.SaUtrGenerator
 import uk.gov.hmrc.http.HttpResponse
@@ -32,10 +32,10 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.Future
 
-class BusinessLookupControllerSpec extends PlaySpec with OneServerPerSuite with MockitoSugar {
+class BusinessLookupControllerSpec extends PlaySpec with GuiceOneServerPerSuite with Injecting {
 
-  val mockDesConnector: EtmpConnector = mock[EtmpConnector]
-  val mockControllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val mockDesConnector: EtmpConnector = mock(classOf[EtmpConnector])
+  val mockControllerComponents: ControllerComponents = inject[ControllerComponents]
 
   trait Setup {
     class TestBusinessLookupController extends BackendController(mockControllerComponents) with BusinessLookupController {
