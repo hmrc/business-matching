@@ -7,14 +7,15 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
+import play.api.test.Injecting
 
-trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockConfig {
+trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockConfig with Injecting {
   self: TestSuite =>
 
   val currentAppBaseUrl: String = "business-matching"
   val testAppUrl: String        = s"http://localhost:$port"
 
-  lazy val ws: WSClient = app.injector.instanceOf[WSClient]
+  lazy val ws: WSClient = inject[WSClient]
 
   val appConfig: Map[String, Any] = Map(
     "application.router"                                  -> "testOnlyDoNotUseInAppConf.Routes",
