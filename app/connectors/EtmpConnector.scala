@@ -16,7 +16,7 @@
 
 package connectors
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import metrics.{MetricsEnum, ServiceMetrics}
 import play.Logger
 import play.api.http.Status._
@@ -32,6 +32,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+@Singleton
 class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
                                      val http: HttpClient,
                                      val auditConnector: AuditConnector,
