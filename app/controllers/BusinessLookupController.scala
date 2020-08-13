@@ -19,7 +19,7 @@ package controllers
 import connectors.EtmpConnector
 import javax.inject.{Inject, Singleton}
 import play.api.mvc._
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
