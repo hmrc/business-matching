@@ -18,7 +18,7 @@ package connectors
 
 import javax.inject.{Inject, Singleton}
 import metrics.{MetricsEnum, ServiceMetrics}
-import play.Logger
+import play.api.Logging
 import play.api.http.Status._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http._
@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -44,7 +44,7 @@ class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
   val urlHeaderAuthorization: String = s"Bearer ${servicesConfig.getConfString("etmp-hod.authorization-token", "")}"
 }
 
-trait EtmpConnector extends RawResponseReads {
+trait EtmpConnector extends RawResponseReads with Logging {
   def serviceUrl: String
   def indLookupURI: String
   def orgLookupURI: String
@@ -75,7 +75,7 @@ trait EtmpConnector extends RawResponseReads {
         case NOT_FOUND => response
         case status =>
           metrics.incrementFailedCounter(MetricsEnum.ETMP_BUSINESS_MATCH)
-          Logger.warn(s"[EtmpConnector][lookup] - status: $status")
+          logger.warn(s"[EtmpConnector][lookup] - status: $status")
           doFailedAudit("lookupFailed", lookupData.toString, response.body)
           response
       }

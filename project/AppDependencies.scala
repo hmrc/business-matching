@@ -6,8 +6,8 @@ private object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.7.0",
-    "uk.gov.hmrc" %% "domain"            % "5.6.0-play-26"
+    "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "2.24.0",
+    "uk.gov.hmrc" %% "domain"            % "5.9.0-play-27"
   )
 
   trait TestDependencies {
@@ -19,7 +19,7 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val test: Seq[ModuleID] = Seq(
         "org.scalatest"           %% "scalatest"          % "3.0.8"             % scope,
-        "org.scalatestplus.play"  %% "scalatestplus-play" % "3.1.3"             % scope,
+        "org.scalatestplus.play"  %% "scalatestplus-play" % "4.0.3"             % scope,
         "org.pegdown"              % "pegdown"            % "1.6.0"             % scope,
         "com.typesafe.play"       %% "play-test"          % PlayVersion.current % scope,
         "org.mockito"              % "mockito-all"        % "1.10.19"           % scope,
