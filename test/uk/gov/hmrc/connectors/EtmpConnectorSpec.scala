@@ -94,7 +94,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
 
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
+          Future.successful(HttpResponse.apply(200, matchSuccessResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
@@ -114,7 +114,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
           """.stripMargin)
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
+          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
@@ -134,7 +134,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
           """.stripMargin)
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, responseJson = Some(matchFailureResponse)))
+          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchFailureResponse)
@@ -170,7 +170,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
           """.stripMargin)
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(200, responseJson = Some(matchSuccessResponse)))
+          Future.successful(HttpResponse.apply(200, matchSuccessResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
@@ -190,7 +190,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
           """.stripMargin)
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(NOT_FOUND, responseJson = Some(matchFailureResponse)))
+          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
         await(result).json must be(matchFailureResponse)
@@ -210,7 +210,7 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
           """.stripMargin)
 
         when(mockWSHttp.POST[JsValue, HttpResponse](Matchers.any(), Matchers.any(), Matchers.any())(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, responseJson = Some(matchFailureResponse)))
+          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
         }
         val result = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
         await(result).json must be(matchFailureResponse)
