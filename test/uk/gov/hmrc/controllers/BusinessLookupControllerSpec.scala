@@ -64,11 +64,11 @@ class BusinessLookupControllerSpec extends PlaySpec with GuiceOneServerPerSuite 
           |}
         """.stripMargin)
 
-      val matchSuccessResponse = HttpResponse(OK, responseJson = Some(matchSuccess))
+      val matchSuccessResponse = HttpResponse.apply(OK, matchSuccess.toString())
 
       val matchFailure = Json.parse(""" {"reason": "Resource not found"} """)
 
-      val matchFailureResponse = HttpResponse(NOT_FOUND, responseJson = Some(matchFailure))
+      val matchFailureResponse = HttpResponse.apply(NOT_FOUND, matchFailure.toString())
 
       val inputJsonForUIB = Json.parse(
         s"""
@@ -109,7 +109,7 @@ class BusinessLookupControllerSpec extends PlaySpec with GuiceOneServerPerSuite 
       "for a bad request, return BadRequest" in new Setup {
         val badRequestJson = Json.parse(""" { "reason" : "Bad Request" } """)
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(BAD_REQUEST, Some(badRequestJson)))
+          Future.successful(HttpResponse.apply(BAD_REQUEST, badRequestJson.toString()))
         }
         val result = controller.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(BAD_REQUEST)
@@ -119,7 +119,7 @@ class BusinessLookupControllerSpec extends PlaySpec with GuiceOneServerPerSuite 
       "for service unavailable, return service unavailable" in new Setup {
         val serviceUnavailable = Json.parse(""" { "reason" : "Service unavailable" } """)
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(SERVICE_UNAVAILABLE, Some(serviceUnavailable)))
+          Future.successful(HttpResponse.apply(SERVICE_UNAVAILABLE, serviceUnavailable.toString()))
         }
         val result = controller.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(SERVICE_UNAVAILABLE)
@@ -129,7 +129,7 @@ class BusinessLookupControllerSpec extends PlaySpec with GuiceOneServerPerSuite 
       "internal server error, return internal server error" in new Setup {
         val serverError = Json.parse(""" { "reason" : "Internal server error" } """)
         when(mockDesConnector.lookup(Matchers.any(), Matchers.any(), Matchers.any())) thenReturn {
-          Future.successful(HttpResponse(INTERNAL_SERVER_ERROR, Some(serverError)))
+          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, serverError.toString()))
         }
         val result = controller.lookup(atedRef, utr, userType).apply(FakeRequest().withJsonBody(inputJsonForUIB))
         status(result) must be(INTERNAL_SERVER_ERROR)
