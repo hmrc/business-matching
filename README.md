@@ -2,7 +2,7 @@ business-matching
 =============
 [![Build Status](https://travis-ci.org/hmrc/business-matching.svg?branch=master)](https://travis-ci.org/hmrc/business-matching) [ ![Download](https://api.bintray.com/packages/hmrc/releases/business-matching/images/download.svg) ](https://bintray.com/hmrc/releases/business-matching/_latestVersion)
 
-This service privides the ability for agents, organistation or self-assessment individuals to search (and register) to ETMP. This is Register Once in ROSM pattern.
+This service provides the ability for agents, organistation or self-assessment individuals to search (and register) to ETMP. This is Register Once in ROSM pattern.
 
 ## Business Lookup APIs
 
