@@ -51,8 +51,7 @@ lazy val microservice = Project(appName, file("."))
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
   )
   .settings(
-    resolvers := Seq(
-      Resolver.bintrayRepo("hmrc", "releases"),
+    resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
       Resolver.jcenterRepo
     )
