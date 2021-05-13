@@ -10,8 +10,7 @@ val appName = "business-matching"
 lazy val appDependencies: Seq[ModuleID] = AppDependencies()
 lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
-lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtAutoBuildPlugin,
-  SbtGitVersioning, SbtDistributablesPlugin)
+lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtDistributablesPlugin)
 
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
@@ -34,7 +33,7 @@ lazy val microservice = Project(appName, file("."))
     addTestReportOption(IntegrationTest, "int-test-reports"),
     inConfig(IntegrationTest)(Defaults.itSettings),
     RoutesKeys.routesImport := Seq.empty,
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.12.12",
     targetJvm := "jvm-1.8",
     majorVersion := 2,
     libraryDependencies ++= appDependencies,
