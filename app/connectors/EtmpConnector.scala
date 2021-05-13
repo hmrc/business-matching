@@ -16,18 +16,17 @@
 
 package connectors
 
-import javax.inject.{Inject, Singleton}
 import metrics.{MetricsEnum, ServiceMetrics}
 import play.api.http.Status._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http.{HttpClient, _}
-import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.LoggerUtil._
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -55,8 +54,7 @@ trait EtmpConnector extends RawResponseReads {
   def metrics: ServiceMetrics
   def audit = new Audit("business-matching", auditConnector)
 
-  def lookup(lookupData: JsValue, userType: String, utr: String): Future[HttpResponse] = {
-    implicit val hc: HeaderCarrier = createHeaderCarrier
+  def lookup(lookupData: JsValue, userType: String, utr: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
 
     val uri = userType match {
@@ -65,7 +63,7 @@ trait EtmpConnector extends RawResponseReads {
       case _        => throw new RuntimeException("[EtmpConnector][lookup] Incorrect user type")
     }
 
-    http.POST[JsValue, HttpResponse](s"$serviceUrl/$uri/$utr", lookupData).map { response =>
+    http.POST[JsValue, HttpResponse](s"$serviceUrl/$uri/$utr", lookupData, createHeaders).map { response =>
       timerContext.stop()
       response.status match {
         case OK =>
@@ -81,10 +79,14 @@ trait EtmpConnector extends RawResponseReads {
     }
   }
 
-  def createHeaderCarrier: HeaderCarrier =
-    HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment), authorization = Some(Authorization(urlHeaderAuthorization)))
+  def createHeaders: Seq[(String, String)] = {
+    Seq(
+      "Environment"   -> urlHeaderEnvironment,
+      "Authorization" -> urlHeaderAuthorization
+    )
+  }
 
-  def doFailedAudit(auditType: String, request: String, response: String)(implicit hc:HeaderCarrier): Unit = {
+  def doFailedAudit(auditType: String, request: String, response: String)(implicit hc: HeaderCarrier): Unit = {
     val auditDetails = Map("request" -> request,
                            "response" -> response)
 

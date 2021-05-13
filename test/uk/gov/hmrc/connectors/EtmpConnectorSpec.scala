@@ -40,6 +40,8 @@ class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAnd
   val mockServiceMetrics: ServiceMetrics = inject[ServiceMetrics]
   val mockAuditConnector: AuditConnector = inject[AuditConnector]
 
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
   trait Setup {
     val connector: DefaultEtmpConnector = new DefaultEtmpConnector(
       inject[ServicesConfig], mockWSHttp, mockAuditConnector, inject[ServiceMetrics]) {
