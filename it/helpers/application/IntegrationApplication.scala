@@ -31,7 +31,7 @@ trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockConfig 
     .overrides(playBind[ServiceMetrics].to[DefaultServiceMetrics])
     .configure(
       Map(
-        "application.router"                                  -> "testOnlyDoNotUseInAppConf.Routes",
+        "play.http.router"                                    -> "testOnlyDoNotUseInAppConf.Routes",
         "microservice.metrics.graphite.host"                  -> "localhost",
         "microservice.metrics.graphite.port"                  -> 2003,
         "microservice.metrics.graphite.prefix"                -> "play.business-matching.",
