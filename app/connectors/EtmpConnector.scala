@@ -50,7 +50,7 @@ trait EtmpConnector extends RawResponseReads {
   def urlHeaderAuthorization: String
   def auditConnector: AuditConnector
 
-  def http: CoreGet with CorePost
+  def http: HttpClient
   def metrics: ServiceMetrics
   def audit = new Audit("business-matching", auditConnector)
 
