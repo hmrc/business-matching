@@ -21,4 +21,5 @@ dist
 .metals
 project/.bloop
 project/metals.sbt
+.bsp
     
