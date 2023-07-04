@@ -21,8 +21,6 @@ lazy val scoverageSettings = {
   )
 }
 
-val silencerVersion = "1.7.1"
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(plugins : _*)
   .settings(playSettings ++ scoverageSettings : _*)
@@ -31,8 +29,7 @@ lazy val microservice = Project(appName, file("."))
     addTestReportOption(IntegrationTest, "int-test-reports"),
     inConfig(IntegrationTest)(Defaults.itSettings),
     RoutesKeys.routesImport := Seq.empty,
-    scalaVersion := "2.12.12",
-    targetJvm := "jvm-1.8",
+    scalaVersion := "2.13.8",
     majorVersion := 2,
     libraryDependencies ++= appDependencies,
     Test / parallelExecution := false,
@@ -42,10 +39,7 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / Keys.fork :=  false,
     IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     IntegrationTest / parallelExecution := false,
-    scalacOptions += "-P:silencer:pathFilters=views;routes",
-    libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
+    scalacOptions += "-Wconf:src=routes/.*:s"
   )
   .settings(
     resolvers ++= Seq(
