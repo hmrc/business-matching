@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,13 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.LoggerUtil._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
                                      val http: HttpClient,
                                      val auditConnector: AuditConnector,
-                                     val metrics: ServiceMetrics) extends EtmpConnector {
+                                     val metrics: ServiceMetrics)(implicit val ec: ExecutionContext) extends EtmpConnector {
   val serviceUrl: String = servicesConfig.baseUrl("etmp-hod")
   val indLookupURI: String = "registration/individual"
   val orgLookupURI: String = "registration/organisation"
@@ -43,6 +42,7 @@ class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
 }
 
 trait EtmpConnector extends RawResponseReads {
+  implicit val ec: ExecutionContext
   def serviceUrl: String
   def indLookupURI: String
   def orgLookupURI: String
