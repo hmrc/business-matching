@@ -18,14 +18,11 @@ package metrics
 
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.Timer.Context
-import com.kenshoo.play.metrics.Metrics
-import javax.inject.Inject
 import metrics.MetricsEnum.MetricsEnum
 
-class DefaultServiceMetrics @Inject()(val metrics: Metrics) extends ServiceMetrics
+class DefaultServiceMetrics extends ServiceMetrics
 trait ServiceMetrics  {
-  val metrics: Metrics
-  val registry: MetricRegistry = metrics.defaultRegistry
+  val registry: MetricRegistry = new MetricRegistry()
 
   val timers = Map(
     MetricsEnum.ETMP_BUSINESS_MATCH -> registry.timer("etmp-business-match-response-timer")

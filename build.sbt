@@ -29,7 +29,7 @@ lazy val microservice = Project(appName, file("."))
     addTestReportOption(IntegrationTest, "int-test-reports"),
     inConfig(IntegrationTest)(Defaults.itSettings),
     RoutesKeys.routesImport := Seq.empty,
-    scalaVersion := "2.13.8",
+    scalaVersion := "2.13.12",
     majorVersion := 2,
     libraryDependencies ++= appDependencies,
     Test / parallelExecution := false,
