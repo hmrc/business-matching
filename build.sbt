@@ -1,12 +1,14 @@
 import play.sbt.routes.RoutesKeys
-import sbt.Keys._
-import sbt._
-import uk.gov.hmrc.DefaultBuildSettings._
+import uk.gov.hmrc.DefaultBuildSettings
+import sbt.Keys.*
+import sbt.*
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 val appName = "business-matching"
 
-lazy val appDependencies: Seq[ModuleID] = AppDependencies()
+ThisBuild / majorVersion := 2
+ThisBuild / scalaVersion := "2.13.12"
+
 lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
 lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -24,21 +26,13 @@ lazy val scoverageSettings = {
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(plugins : _*)
   .settings(playSettings ++ scoverageSettings : _*)
-  .configs(IntegrationTest)
   .settings(
-    addTestReportOption(IntegrationTest, "int-test-reports"),
-    inConfig(IntegrationTest)(Defaults.itSettings),
     RoutesKeys.routesImport := Seq.empty,
-    scalaVersion := "2.13.8",
-    majorVersion := 2,
-    libraryDependencies ++= appDependencies,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     Test / parallelExecution := false,
     Test / fork := true,
     retrieveManaged := true,
     routesGenerator := InjectedRoutesGenerator,
-    IntegrationTest / Keys.fork :=  false,
-    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
-    IntegrationTest / parallelExecution := false,
     scalacOptions += "-Wconf:src=routes/.*:s"
   )
   .settings(
@@ -47,3 +41,9 @@ lazy val microservice = Project(appName, file("."))
       Resolver.jcenterRepo
     )
   )
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= AppDependencies.itDependencies)
