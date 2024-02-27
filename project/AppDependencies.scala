@@ -1,6 +1,5 @@
-import play.core.PlayVersion
-import sbt._
 import play.sbt.PlayImport.ws
+import sbt.*
 
 private object AppDependencies {
 
@@ -12,21 +11,13 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "domain-play-30"            % "9.0.0"
   )
 
-  trait TestDependencies {
-    lazy val scope: String = "it,test"
-    val test : Seq[ModuleID]
-  }
+  val test: Seq[ModuleID] = Seq(
+    "org.mockito"  %  "mockito-core"           % "5.10.0"         % Test,
+    "uk.gov.hmrc"  %% "bootstrap-test-play-30" % bootstrapVersion % Test
+  )
 
-  object Test {
-    def apply() = new TestDependencies {
-      override lazy val test: Seq[ModuleID] = Seq(
-        "org.mockito"                  %  "mockito-core"           % "5.4.0"             % scope,
-        "com.github.tomakehurst"       %  "wiremock-jre8"          % "2.35.0"            % scope,
-        "com.fasterxml.jackson.module" %% "jackson-module-scala"   % "2.15.2"            % scope,
-        "uk.gov.hmrc"                  %% "bootstrap-test-play-30" % bootstrapVersion    % scope
-      )
-    }.test
-  }
-
-  def apply() = compile ++ Test()
+  val itDependencies: Seq[ModuleID] = Seq(
+    "org.wiremock"                  %  "wiremock"             % "3.4.2"  % Test,
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala" % "2.16.1" % Test,
+  )
 }
