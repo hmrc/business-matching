@@ -31,21 +31,6 @@ trait IntegrationSpec
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    startWmServer()
-  }
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-    resetWmServer()
-  }
-
-  override protected def afterAll(): Unit = {
-    super.afterAll()
-    stopWmServer()
-  }
-
   def hitApplicationEndpoint(url: String): WSRequest = {
     val appendSlash = if(url.startsWith("/")) url else s"/$url"
     ws.url(s"$testAppUrl$appendSlash")

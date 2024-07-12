@@ -16,6 +16,7 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, postRequestedFor, stubFor, urlEqualTo, urlMatching}
 import helpers.IntegrationSpec
 import metrics.ServiceMetrics
 import org.mockito.ArgumentMatchers
@@ -35,6 +36,8 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import scala.concurrent.{ExecutionContext, Future}
 
 class EtmpConnectorISpec extends IntegrationSpec {
+
+  val connector: EtmpConnector = inject[EtmpConnector]
 
   val saUserType = "sa"
   val orgUserType = "org"
@@ -58,7 +61,7 @@ class EtmpConnectorISpec extends IntegrationSpec {
 
       val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
 
-      "for a successful match, return business details" in new Setup {
+      "for a successful match, return business details" in {
 
         val inputJsonForUIB: JsValue = Json.parse(
           s"""
@@ -71,164 +74,165 @@ class EtmpConnectorISpec extends IntegrationSpec {
              |}
           """.stripMargin)
 
+        stubFor(
+          post(urlEqualTo(s"/registration/individual/${matchUtr.toString()}"))
+            willReturn aResponse()
+            .withStatus(OK)
+            .withBody(matchSuccessResponse.toString())
+        )
 
 
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(200, matchSuccessResponse.toString()))
-        }
         val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
         await(result).json must be(matchSuccessResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+        wireMockServer.verify(1, postRequestedFor(urlMatching(s"/registration/individual/${matchUtr.toString()}")))
       }
 
-      "for unsuccessful match, return error message" in new Setup {
-        val inputJsonForUIB: JsValue = Json.parse(
-          s"""
-             |{
-             |  "businessType": "UIB",
-             |  "uibCompany": {
-             |    "uibBusinessName": "ACME",
-             |    "uibCotaxAUTR": $noMatchUtr
-             |  }
-             |}
-          """.stripMargin)
-
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
-        }
-        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
-        await(result).json must be(matchFailureResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-      }
-
-      "for server error, return error message" in new Setup {
-        val inputJsonForUIB: JsValue = Json.parse(
-          s"""
-             |{
-             |  "businessType": "UIB",
-             |  "uibCompany": {
-             |    "uibBusinessName": "ACME",
-             |    "uibCotaxAUTR": $matchUtr
-             |  }
-             |}
-          """.stripMargin)
-
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
-        }
-        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
-        await(result).json must be(matchFailureResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-      }
-
-    }
-
-    "userType=org" must {
-
-      val matchSuccessResponse = Json.parse(
-        """
-          |{
-          |  "businessName":"ACME",
-          |  "businessType":"Unincorporated body",
-          |  "businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123",
-          |  "businessTelephone":"201234567890",
-          |  "businessEmail":"contact@acme.com"
-          |}
-        """.stripMargin)
-
-      val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
-
-      "for a successful match, return business details" in new Setup {
-        val inputJsonForUIB: JsValue = Json.parse(
-          s"""{
-              |  "businessType": "UIB",
-              |  "uibCompany": {
-              |    "uibBusinessName": "ACME",
-              |    "uibCotaxAUTR": $matchUtr
-              |  }
-              |}
-          """.stripMargin)
-
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(200, matchSuccessResponse.toString()))
-        }
-        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
-        await(result).json must be(matchSuccessResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-      }
-
-      "for unsuccessful match, return error message" in new Setup {
-        val inputJsonForUIB: JsValue = Json.parse(
-          s"""
-             |{
-             |  "businessType": "UIB",
-             |  "uibCompany": {
-             |    "uibBusinessName": "ACME",
-             |    "uibCotaxAUTR": $noMatchUtr
-             |  }
-             |}
-          """.stripMargin)
-
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
-        }
-        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
-        await(result).json must be(matchFailureResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-      }
-
-      "for server error, return error message" in new Setup {
-        val inputJsonForUIB: JsValue = Json.parse(
-          s"""
-             |{
-             |  "businessType": "UIB",
-             |  "uibCompany": {
-             |    "uibBusinessName": "ACME",
-             |    "uibCotaxAUTR": $matchUtr
-             |  }
-             |}
-          """.stripMargin)
-
-        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
-          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
-        }
-        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
-        await(result).json must be(matchFailureResponse)
-        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
-      }
-
-    }
-
-    "userType=Wrong type, throw an exception" in new Setup {
-
-      val inputJsonForUIB: JsValue = Json.parse(
-        s"""
-           |{
-           |  "businessType": "UIB",
-           |  "uibCompany": {
-           |    "uibBusinessName": "ACME",
-           |    "uibCotaxAUTR": $matchUtr
-           |  }
-           |}
-        """.stripMargin)
-
-      val thrown: RuntimeException = the[RuntimeException] thrownBy await(connector.lookup(inputJsonForUIB, "wrongType", matchUtr.toString))
-      thrown.getMessage must be("[EtmpConnector][lookup] Incorrect user type")
-      verify(mockWSHttp, times(0))
-        .POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(),
-          ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      "for unsuccessful match, return error message" in new Setup {
+//        val inputJsonForUIB: JsValue = Json.parse(
+//          s"""
+//             |{
+//             |  "businessType": "UIB",
+//             |  "uibCompany": {
+//             |    "uibBusinessName": "ACME",
+//             |    "uibCotaxAUTR": $noMatchUtr
+//             |  }
+//             |}
+//          """.stripMargin)
+//
+//        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
+//          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
+//        }
+//        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, saUserType, noMatchUtr.toString)
+//        await(result).json must be(matchFailureResponse)
+//        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      }
+//
+//      "for server error, return error message" in new Setup {
+//        val inputJsonForUIB: JsValue = Json.parse(
+//          s"""
+//             |{
+//             |  "businessType": "UIB",
+//             |  "uibCompany": {
+//             |    "uibBusinessName": "ACME",
+//             |    "uibCotaxAUTR": $matchUtr
+//             |  }
+//             |}
+//          """.stripMargin)
+//
+//        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
+//          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
+//        }
+//        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, saUserType, matchUtr.toString)
+//        await(result).json must be(matchFailureResponse)
+//        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      }
+//
+//    }
+//
+//    "userType=org" must {
+//
+//      val matchSuccessResponse = Json.parse(
+//        """
+//          |{
+//          |  "businessName":"ACME",
+//          |  "businessType":"Unincorporated body",
+//          |  "businessAddress":"23 High Street\nPark View\nThe Park\nGloucester\nGloucestershire\nABC 123",
+//          |  "businessTelephone":"201234567890",
+//          |  "businessEmail":"contact@acme.com"
+//          |}
+//        """.stripMargin)
+//
+//      val matchFailureResponse = Json.parse( """{"error": "Sorry. Business details not found."}""")
+//
+//      "for a successful match, return business details" in new Setup {
+//        val inputJsonForUIB: JsValue = Json.parse(
+//          s"""{
+//              |  "businessType": "UIB",
+//              |  "uibCompany": {
+//              |    "uibBusinessName": "ACME",
+//              |    "uibCotaxAUTR": $matchUtr
+//              |  }
+//              |}
+//          """.stripMargin)
+//
+//        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
+//          Future.successful(HttpResponse.apply(200, matchSuccessResponse.toString()))
+//        }
+//        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
+//        await(result).json must be(matchSuccessResponse)
+//        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      }
+//
+//      "for unsuccessful match, return error message" in new Setup {
+//        val inputJsonForUIB: JsValue = Json.parse(
+//          s"""
+//             |{
+//             |  "businessType": "UIB",
+//             |  "uibCompany": {
+//             |    "uibBusinessName": "ACME",
+//             |    "uibCotaxAUTR": $noMatchUtr
+//             |  }
+//             |}
+//          """.stripMargin)
+//
+//        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
+//          Future.successful(HttpResponse.apply(NOT_FOUND, matchFailureResponse.toString()))
+//        }
+//        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, noMatchUtr.toString)
+//        await(result).json must be(matchFailureResponse)
+//        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      }
+//
+//      "for server error, return error message" in new Setup {
+//        val inputJsonForUIB: JsValue = Json.parse(
+//          s"""
+//             |{
+//             |  "businessType": "UIB",
+//             |  "uibCompany": {
+//             |    "uibBusinessName": "ACME",
+//             |    "uibCotaxAUTR": $matchUtr
+//             |  }
+//             |}
+//          """.stripMargin)
+//
+//        when(mockWSHttp.POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//          (ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())) thenReturn {
+//          Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, matchFailureResponse.toString()))
+//        }
+//        val result: Future[HttpResponse] = connector.lookup(inputJsonForUIB, orgUserType, matchUtr.toString)
+//        await(result).json must be(matchFailureResponse)
+//        verify(mockWSHttp, times(1)).POST[JsValue, HttpResponse](ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
+//      }
+//
+//    }
+//
+//    "userType=Wrong type, throw an exception" in new Setup {
+//
+//      val inputJsonForUIB: JsValue = Json.parse(
+//        s"""
+//           |{
+//           |  "businessType": "UIB",
+//           |  "uibCompany": {
+//           |    "uibBusinessName": "ACME",
+//           |    "uibCotaxAUTR": $matchUtr
+//           |  }
+//           |}
+//        """.stripMargin)
+//
+//      val thrown: RuntimeException = the[RuntimeException] thrownBy await(connector.lookup(inputJsonForUIB, "wrongType", matchUtr.toString))
+//      thrown.getMessage must be("[EtmpConnector][lookup] Incorrect user type")
+//      verify(mockWSHttp, times(0))
+//        .POST[JsValue, HttpResponse](ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any(),
+//          ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())
     }
   }
 

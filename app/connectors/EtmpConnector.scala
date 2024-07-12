@@ -64,8 +64,9 @@ trait EtmpConnector extends RawResponseReads {
       case _        => throw new RuntimeException("[EtmpConnector][lookup] Incorrect user type")
     }
 
-//    http.POST[JsValue, HttpResponse](s"$serviceUrl/$uri/$utr", lookupData, createHeaders).map { response =>
-    http.post(url"$serviceUrl/$uri/$utr").withBody(lookupData).setHeader(createHeaders : _*).execute[HttpResponse].map { response =>
+    val url = s"$serviceUrl/$uri/$utr"
+
+    http.post(url"$url").withBody(lookupData).setHeader(createHeaders : _*).execute[HttpResponse].map { response =>
       timerContext.stop()
       response.status match {
         case OK =>
