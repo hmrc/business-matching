@@ -17,7 +17,6 @@
 package helpers
 
 import helpers.application.IntegrationApplication
-import helpers.wiremock.WireMockSetup
 import org.scalatest._
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.ws.WSRequest
@@ -28,7 +27,6 @@ trait IntegrationSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll
     with IntegrationApplication
-    with WireMockSetup
     with AssertionHelpers {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()

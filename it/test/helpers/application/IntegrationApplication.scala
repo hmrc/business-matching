@@ -17,7 +17,6 @@
 package helpers.application
 
 import connectors.{DefaultEtmpConnector, EtmpConnector}
-import helpers.wiremock.WireMockConfig
 import metrics.{DefaultServiceMetrics, ServiceMetrics}
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
@@ -30,8 +29,9 @@ import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import play.api.inject.{bind => playBind}
+import uk.gov.hmrc.http.test.WireMockSupport
 
-trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockConfig with Injecting {
+trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockSupport with Injecting {
   self: TestSuite =>
 
   val currentAppBaseUrl: String = "business-matching"
@@ -42,7 +42,7 @@ trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockConfig 
   override lazy val app: Application = new GuiceApplicationBuilder()
     .overrides(playBind[EtmpConnector].to[DefaultEtmpConnector])
     .overrides(playBind[PlayAuthConnector].to[DefaultAuthConnector])
-    .overrides(playBind[HttpClient].to[DefaultHttpClient])
+//    .overrides(playBind[HttpClient].to[DefaultHttpClient])
     .overrides(playBind[ServiceMetrics].to[DefaultServiceMetrics])
     .configure(
       Map(

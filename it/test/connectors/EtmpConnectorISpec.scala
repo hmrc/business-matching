@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.connectors
+package connectors
 
-import connectors.DefaultEtmpConnector
+import helpers.IntegrationSpec
 import metrics.ServiceMetrics
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
@@ -28,37 +28,13 @@ import play.api.test.Helpers._
 import play.api.test.Injecting
 import uk.gov.hmrc.domain.{SaUtr, SaUtrGenerator}
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EtmpConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with BeforeAndAfter with Injecting {
-
-  val mockWSHttp: HttpClientV2 = mock(classOf[HttpClientV2])
-  val mockServiceMetrics: ServiceMetrics = inject[ServiceMetrics]
-  val mockAuditConnector: AuditConnector = inject[AuditConnector]
-
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  trait Setup {
-    implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-    val connector: DefaultEtmpConnector = new DefaultEtmpConnector(
-      inject[ServicesConfig], mockWSHttp, mockAuditConnector, inject[ServiceMetrics]) {
-      override val serviceUrl = ""
-      override val indLookupURI: String = "registration/individual"
-      override val orgLookupURI: String = "registration/organisation"
-      override val http: HttpClientV2 = mockWSHttp
-      override val urlHeaderEnvironment: String = "env"
-      override val urlHeaderAuthorization: String = "auth-token"
-    }
-  }
-
-  before {
-    reset(mockWSHttp)
-  }
+class EtmpConnectorISpec extends IntegrationSpec {
 
   val saUserType = "sa"
   val orgUserType = "org"

@@ -25,13 +25,14 @@ import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.http.HttpClient
 import play.api.inject.{bind => playBind}
+import uk.gov.hmrc.http.client.HttpClientV2
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] =
     Seq(
       playBind(classOf[EtmpConnector]).to(classOf[DefaultEtmpConnector]),
       playBind(classOf[PlayAuthConnector]).to(classOf[DefaultAuthConnector]),
-      playBind(classOf[HttpClient]).to(classOf[DefaultHttpClient]),
+//      playBind(classOf[HttpClient]).to(classOf[DefaultHttpClient]),
       playBind(classOf[ServiceMetrics]).to(classOf[DefaultServiceMetrics])
     )
 }
