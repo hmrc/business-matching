@@ -19,7 +19,8 @@ package connectors
 import metrics.{MetricsEnum, ServiceMetrics}
 import play.api.http.Status._
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.http.{HttpClient, _}
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
@@ -31,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
-                                     val http: HttpClient,
+                                     val http: HttpClientV2,
                                      val auditConnector: AuditConnector,
                                      val metrics: ServiceMetrics)(implicit val ec: ExecutionContext) extends EtmpConnector {
   val serviceUrl: String = servicesConfig.baseUrl("etmp-hod")
@@ -50,7 +51,7 @@ trait EtmpConnector extends RawResponseReads {
   def urlHeaderAuthorization: String
   def auditConnector: AuditConnector
 
-  def http: HttpClient
+  def http: HttpClientV2
   def metrics: ServiceMetrics
   def audit = new Audit("business-matching", auditConnector)
 
@@ -63,7 +64,9 @@ trait EtmpConnector extends RawResponseReads {
       case _        => throw new RuntimeException("[EtmpConnector][lookup] Incorrect user type")
     }
 
-    http.POST[JsValue, HttpResponse](s"$serviceUrl/$uri/$utr", lookupData, createHeaders).map { response =>
+    val url = s"$serviceUrl/$uri/$utr"
+
+    http.post(url"$url").withBody(lookupData).setHeader(createHeaders : _*).execute[HttpResponse].map { response =>
       timerContext.stop()
       response.status match {
         case OK =>

@@ -7,9 +7,9 @@ import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 val appName = "business-matching"
 
 ThisBuild / majorVersion := 2
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.14"
 
-lazy val playSettings : Seq[Setting[_]] = Seq.empty
+lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
 lazy val plugins : Seq[Plugins] = Seq(play.sbt.PlayScala, SbtDistributablesPlugin)
 
@@ -24,8 +24,8 @@ lazy val scoverageSettings = {
 }
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(plugins : _*)
-  .settings(playSettings ++ scoverageSettings : _*)
+  .enablePlugins(plugins *)
+  .settings((playSettings ++ scoverageSettings) *)
   .settings(
     RoutesKeys.routesImport := Seq.empty,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
