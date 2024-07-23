@@ -22,14 +22,12 @@ import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.{bind => playBind}
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.Injecting
 import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
-import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
-import play.api.inject.{bind => playBind}
 import uk.gov.hmrc.http.test.WireMockSupport
+import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
 trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockSupport with Injecting {
   self: TestSuite =>
@@ -42,7 +40,6 @@ trait IntegrationApplication extends GuiceOneServerPerSuite with WireMockSupport
   override lazy val app: Application = new GuiceApplicationBuilder()
     .overrides(playBind[EtmpConnector].to[DefaultEtmpConnector])
     .overrides(playBind[PlayAuthConnector].to[DefaultAuthConnector])
-//    .overrides(playBind[HttpClient].to[DefaultHttpClient])
     .overrides(playBind[ServiceMetrics].to[DefaultServiceMetrics])
     .configure(
       Map(
