@@ -24,10 +24,6 @@
 
     <logger name="com.google.inject" level="OFF"/>
 
-    <logger name="org.asynchttpclient.netty" level="OFF"/>
-    <logger name="io.netty.buffer" level="OFF"/>
-    <logger name="play.core.netty" level="OFF"/>
-
     <logger name="uk.gov" level="OFF"/>
 
     <logger name="application" level="INFO"/>
