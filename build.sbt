@@ -7,7 +7,7 @@ import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 val appName = "business-matching"
 
 ThisBuild / majorVersion := 2
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := "2.13.15"
 
 lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
