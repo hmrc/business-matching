@@ -3,7 +3,7 @@ import sbt.*
 
 private object AppDependencies {
 
-  val bootstrapVersion = "9.5.0"
+  val bootstrapVersion = "9.11.0"
 
   val compile: Seq[ModuleID] = Seq(
     ws,
@@ -12,7 +12,7 @@ private object AppDependencies {
   )
 
   val test: Seq[ModuleID] = Seq(
-    "org.mockito"  %  "mockito-core"           % "5.14.2"         % Test,
+    "org.mockito"  %  "mockito-core"           % "5.16.0"         % Test,
     "uk.gov.hmrc"  %% "bootstrap-test-play-30" % bootstrapVersion % Test
   )
 
