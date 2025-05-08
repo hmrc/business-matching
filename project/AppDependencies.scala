@@ -8,11 +8,11 @@ private object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
-    "uk.gov.hmrc" %% "domain-play-30"            % "10.0.0"
+    "uk.gov.hmrc" %% "domain-play-30"            % "11.0.0"
   )
 
   val test: Seq[ModuleID] = Seq(
-    "org.mockito"  %  "mockito-core"           % "5.16.0"         % Test,
+    "org.mockito"  %  "mockito-core"           % "5.17.0"         % Test,
     "uk.gov.hmrc"  %% "bootstrap-test-play-30" % bootstrapVersion % Test
   )
 
