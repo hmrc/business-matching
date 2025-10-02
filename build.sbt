@@ -37,8 +37,7 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(
     resolvers ++= Seq(
-      Resolver.typesafeRepo("releases"),
-      Resolver.jcenterRepo
+      Resolver.typesafeRepo("releases")
     )
   )
 
