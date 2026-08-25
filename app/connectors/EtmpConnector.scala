@@ -17,15 +17,17 @@
 package connectors
 
 import metrics.{MetricsEnum, ServiceMetrics}
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.http._
+import play.api.libs.ws.writeableOf_JsValue
+import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.play.audit.AuditExtensions._
+import uk.gov.hmrc.play.audit.AuditExtensions.*
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.LoggerUtil._
+import utils.LoggerUtil.*
+
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
                                      val http: HttpClientV2,
                                      val auditConnector: AuditConnector,
-                                     val metrics: ServiceMetrics)(implicit val ec: ExecutionContext) extends EtmpConnector {
+                                     val metrics: ServiceMetrics)(using val ec: ExecutionContext) extends EtmpConnector {
   val serviceUrl: String = servicesConfig.baseUrl("etmp-hod")
   val indLookupURI: String = "registration/individual"
   val orgLookupURI: String = "registration/organisation"
@@ -43,7 +45,7 @@ class DefaultEtmpConnector @Inject()(val servicesConfig: ServicesConfig,
 }
 
 trait EtmpConnector extends RawResponseReads {
-  implicit val ec: ExecutionContext
+  given ec: ExecutionContext
   def serviceUrl: String
   def indLookupURI: String
   def orgLookupURI: String
@@ -55,7 +57,7 @@ trait EtmpConnector extends RawResponseReads {
   def metrics: ServiceMetrics
   def audit = new Audit("business-matching", auditConnector)
 
-  def lookup(lookupData: JsValue, userType: String, utr: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def lookup(lookupData: JsValue, userType: String, utr: String)(using hc: HeaderCarrier): Future[HttpResponse] = {
     val timerContext = metrics.startTimer(MetricsEnum.ETMP_BUSINESS_MATCH)
 
     val uri = userType match {
@@ -89,7 +91,7 @@ trait EtmpConnector extends RawResponseReads {
     )
   }
 
-  def doFailedAudit(auditType: String, request: String, response: String)(implicit hc: HeaderCarrier): Unit = {
+  def doFailedAudit(auditType: String, request: String, response: String)(using hc: HeaderCarrier): Unit = {
     val auditDetails = Map("request" -> request,
                            "response" -> response)
 

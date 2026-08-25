@@ -17,7 +17,7 @@
 package helpers
 
 import helpers.application.IntegrationApplication
-import org.scalatest._
+import org.scalatest.*
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.ws.WSRequest
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,7 +29,7 @@ trait IntegrationSpec
     with IntegrationApplication
     with AssertionHelpers {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  given hc: HeaderCarrier = HeaderCarrier()
 
   def hitApplicationEndpoint(url: String): WSRequest = {
     val appendSlash = if(url.startsWith("/")) url else s"/$url"
