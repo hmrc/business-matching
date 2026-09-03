@@ -18,9 +18,10 @@ package controllers
 
 import connectors.EtmpConnector
 import javax.inject.{Inject, Singleton}
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import scala.annotation.unused
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -44,9 +45,9 @@ class AgentBusinessLookupController @Inject()(
 trait BusinessLookupController extends BackendController {
   val desConnector: EtmpConnector
 
-  def lookup(id: String, utr: String, userType: String): Action[AnyContent] = Action.async {
+  def lookup(@unused id: String, utr: String, userType: String): Action[AnyContent] = Action.async {
     implicit request =>
-      implicit val ec: ExecutionContext = controllerComponents.executionContext
+      given ec: ExecutionContext = controllerComponents.executionContext
 
       val json = request.body.asJson.get
       desConnector.lookup(lookupData = json, userType = userType, utr = utr) map {lookupData =>

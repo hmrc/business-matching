@@ -19,7 +19,8 @@ package controllers
 import helpers.IntegrationSpec
 import play.api.libs.json.Json
 import play.api.libs.ws.WSResponse
-import com.github.tomakehurst.wiremock.client.WireMock._
+import play.api.libs.ws.writeableOf_JsValue
+import com.github.tomakehurst.wiremock.client.WireMock.*
 
 class BusinessLookupControllerISpec extends IntegrationSpec {
 
